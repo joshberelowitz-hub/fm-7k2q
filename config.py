@@ -57,6 +57,3 @@ SPREAD_CALIB = {
 # Yield sensitivity to projected debt (bp per pp of debt/GDP), central and band
 DEBT_ELASTICITY = 3.5
 DEBT_ELASTICITY_BAND = (2.0, 5.0)
-
-# Start date for attributing the rise in the global term premium
-DECOMP_START = "2021-01"

@@ -292,32 +292,6 @@ def s_tp(data, tp, acm_res):
     return resid
 
 
-@safe("Global term premium: how much is fiscal?")
-def s_global(data, tp):
-    tpm = tp.loc["2000":].dropna()
-    univ = [u for u in C.FACTOR_UNIVERSE if u in tpm]
-    glob = F.global_factor(tpm[univ]).rename("global")
-    drivers = pd.DataFrame(index=glob.index)
-    debt = data["imf"]["debt"][[C.ISO3[c] for c in C.COUNTRIES]].mean(axis=1)
-    drivers["dm_debt"] = [debt.get(d.year, np.nan) for d in drivers.index]
-    if data.get("move") is not None:
-        drivers["move"] = data["move"].resample("MS").mean().reindex(drivers.index)
-    if "US_BE10" in data["daily"]:
-        drivers["us_breakeven_10y"] = data["daily"]["US_BE10"].resample("MS").mean().reindex(drivers.index)
-    drivers = drivers.dropna()
-    g = glob.reindex(drivers.index)
-    start = drivers.index[drivers.index >= pd.Timestamp(C.DECOMP_START)][0]
-    end = drivers.index[-1]
-    dec = F.decompose_global(g, drivers, start, end, fiscal_cols=("dm_debt",))
-    fig = go.Figure(go.Bar(x=dec.index, y=dec.values))
-    fig.update_layout(title=f"Change in global term premium factor, {start:%b %Y} → {end:%b %Y}, bp")
-    section("Global term premium: how much is fiscal?", fig_html(fig, 340),
-            "Regression of the global factor on average debt/GDP of the six (fiscal), MOVE (rate vol) "
-            "and the US 10y breakeven (inflation expectations). Attribution = coefficient × change in driver. Short sample and "
-            "collinear drivers: read as an order of magnitude, not a point estimate.")
-    return dec
-
-
 @safe("How much is priced")
 def s_priced(data, resid, ftab):
     body = ""
@@ -484,8 +458,6 @@ def main():
     if ftab is not None:
         s_cyclical(ftab)
     resid = s_tp(data, tp, acm_res) if tp is not None else None
-    if tp is not None:
-        s_global(data, tp)
     prob, sprob = ({}, {})
     if resid is not None and ftab is not None:
         r = s_priced(data, resid, ftab)

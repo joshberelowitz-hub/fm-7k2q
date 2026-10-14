@@ -1,2 +1,3 @@
-ecb_fm_bb_daily.csv    404   1.4s len=545 :: b'{"type":"/service/data/FM/D.DE+FR+IT.EUR.4F.BB..YLD","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"'
-ecb_fm_bb_list.csv     404   1.2s len=443 :: b'{"type":"/service/data/FM/D..EUR.4F.BB..YLD","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"1.0\\" en'
+ecb_b.csv              404   0.9s len=443 :: b'{"type":"/service/data/FM/B..EUR.4F.BB..YLD","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"1.0\\" en'
+ecb_m.csv              200   1.1s len=1186 :: b'KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE\r\nFM.M.U2.EUR.4F.BB.U2_10Y.YLD,M,U2,EUR,4F,BB,U2'
+ecb_b_any.csv          404   2.3s len=511 :: b'{"type":"/service/data/FM/B.FR+IT+DE.....","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"1.0\\" enco'

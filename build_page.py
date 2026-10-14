@@ -53,9 +53,10 @@ def table_html(df: pd.DataFrame, fmt: dict | None = None) -> str:
     return '<div class="tbl">' + d.to_html(escape=True, na_rep="", border=0) + "</div>"
 
 
-def section(title: str, body: str, note: str = "") -> None:
-    n = f'<p class="note">{note}</p>' if note else ""
-    SECTIONS.append(f"<section><h2>{html.escape(title)}</h2>{n}{body}</section>")
+def section(title: str, body: str, note: str = "", details: str = "") -> None:
+    n = f'<p class="explain">{note}</p>' if note else ""
+    d = f'<p class="note details">{details}</p>' if details else ""
+    SECTIONS.append(f"<section><h2>{html.escape(title)}</h2>{n}{body}{d}</section>")
 
 
 def safe(title: str):
@@ -218,6 +219,9 @@ def s_warnings(data, ftab, rank, pol, base_year):
     scol = {"WORRY": "#f5c6cb", "WATCH": "#ffe8a1", "SLOW BURN": "#fde2c8", "MARKET-LED": "#fde2c8", "OK": "#d4edda"}
     maj = pol["majority_in_12m"].reindex(V.index) if "majority_in_12m" in pol else pd.Series(index=V.index, dtype=object)
     mcol = {"High": "#e8f5e9", "Medium": "#fff3cd", "Low": "#f8d7da"}
+    groups = [("Fundamental", fund_cols), ("Market", mkt_cols), ("Political", ["Days to trigger", "Majority in 12m"]),
+              ("", ["Status"])]
+    hdr1 = "<th></th>" + "".join(f'<th colspan="{len(cols)}" style="text-align:center">{g}</th>' for g, cols in groups)
     hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Majority in 12m", "Status"])
     rows = ""
     for c in V.index:
@@ -233,7 +237,7 @@ def s_warnings(data, ftab, rank, pol, base_year):
         s = status[c]
         cells += f'<td style="background:{scol.get(s.split(" —")[0], "#fff")};font-weight:bold">{s}</td>'
         rows += f"<tr><th>{c}</th>{cells}</tr>"
-    body = f'<div class="tbl"><table><tr><th></th>{hdr}</tr>{rows}</table></div>'
+    body = f'<div class="tbl"><table><tr>{hdr1}</tr><tr><th></th>{hdr}</tr>{rows}</table></div>'
     th = "; ".join([
         f"r−g amber >{W['r_g_mkt'][0]:+.0%}, red >{W['r_g_mkt'][1]:+.0%}",
         f"debt Δ amber >{W['debt_10y_chg'][0]:+.0%}, red >{W['debt_10y_chg'][1]:+.0%}",
@@ -243,19 +247,19 @@ def s_warnings(data, ftab, rank, pol, base_year):
         f"yield–FX corr amber <{W['fx_yield_corr'][0]}, red <{W['fx_yield_corr'][1]}",
         f"trigger amber <{W['trigger_days'][0]}d, red <{W['trigger_days'][1]}d"])
     section("Warning lights (absolute)", body,
-            "Fixed thresholds, not rankings — a country can be red even if it is the best of the six. "
-            "Fundamentals: r−g at market rates; debt change over 10 years if effective r converges to market r "
-            "and the primary balance stays at its current level; required primary balance minus best 5-year "
-            "record; IMF net interest / revenue (net interest understates Japan's gross burden). Market: "
-            "term premium (US/DE/UK/JP) or spread-to-Bund (FR/IT) percentile in own history; 60-day "
-            "correlation of daily 10y yield and currency changes (negative = yields up with currency down, the "
-            "fiscal-stress signature; not meaningful within the euro). Trigger: days to the next binding "
-            "election or budget deadline (manual/politics.csv). Majority in 12m: likelihood that a government "
-            "holds a working legislative majority a year from now (US: one party controls presidency and both "
-            "chambers) — shown for context, not used in the status, since a majority can enable either "
-            "consolidation or looser policy. Status: WORRY = red fundamental AND red "
-            "market; WATCH = amber-or-worse on both; SLOW BURN = red fundamental only; MARKET-LED = red "
-            "market only. Thresholds: " + th + ". All editable in config.py.")
+            "Fixed thresholds rather than rankings, so a country can be red even if it is the best of the six. "
+            "Status: WORRY = red on at least one fundamental and one market indicator; WATCH = amber or worse on "
+            "both; SLOW BURN = red fundamentals only; MARKET-LED = red market only; '— trigger <6m' when an "
+            "election or budget deadline is within six months. Majority in 12m is context only and does not feed "
+            "the status, since a majority can enable either consolidation or looser policy.",
+            "Fundamental: r−g at market rates; debt change over 10 years if the effective rate converges to the "
+            "market rate and the primary balance stays at its current level; required primary balance minus "
+            "best 5-year record; IMF net interest / revenue (understates Japan's gross burden). Market: term "
+            "premium (US/DE/UK/JP) or spread-to-Bund (FR/IT) percentile in own history; 60-day correlation of "
+            "daily 10y yield and currency changes (not meaningful within the euro). Political: days to the next "
+            "binding election or budget deadline, and likelihood of a working majority in a year (US: one party "
+            "controls presidency and both chambers), both from manual/politics.csv. Thresholds: " + th
+            + ". Editable in config.py.")
 
 
 @safe("Overview heatmap")
@@ -285,11 +289,12 @@ def s_heatmap(ftab, prob, spreads_prob, pol):
                    for i in fund.index)
     body = f'<div class="tbl"><table><tr><th></th>{hdr}</tr>{rows}</table></div>'
     section("Overview (relative)", body,
-            "Scores 1–5, 5 = most stressed, ranked across these six countries. "
-            "'composite' averages the three fundamentals columns (raw values in the sections below). 'Fundamentals minus priced' "
-            "positive (red) = fundamentals rank worse than market pricing; negative (green) = market "
-            "pricing is elevated relative to fundamentals. 'Priced' = percentile of today's term premium "
-            "(US/DE/UK/JP, since 1998) or spread to Bunds (FR/IT, since 2008) in its own history, in quintiles.")
+            "Ranks the six countries against each other, 1–5 with 5 = most stressed. 'Fundamentals minus "
+            "priced' positive (red) = fundamentals rank worse than market pricing; negative (green) = market "
+            "pricing is elevated relative to fundamentals.",
+            "Composite = average of the three fundamentals columns (raw values in the sections below). 'Priced' = "
+            "percentile of today's term premium (US/DE/UK/JP, since 1998) or spread to Bunds (FR/IT, since "
+            "2008) in its own history, in quintiles.")
 
 
 @safe("Debt dynamics (r − g)")
@@ -320,11 +325,14 @@ def s_dynamics(data, ftab, base_year):
                       xaxis=dict(range=[2000, base_year + 10]))
     body += fig_html(fig, 450)
     section("Debt dynamics (r − g)", body,
-            f"Base year {base_year} (IMF estimate). Required PB = d(r−g)/(1+g). Forward g = IMF "
-            "5-year-ahead nominal growth unless LTCMA overrides are set in config.py. Market r = latest "
-            "10y yield. Primary balance is headline, not cyclically adjusted. Interest is backed out as "
-            "primary minus overall balance, i.e. NET interest — this understates the gross burden, "
-            "especially for Japan (large government financial assets, BoJ remittances).")
+            "Required primary balance = the surplus that holds debt/GDP flat, d(r−g)/(1+g). Comparing it with "
+            "the best 5-year record shows whether stabilising debt would need a consolidation the country has "
+            "never sustained. Dashed lines show the debt path if the effective interest rate converges to "
+            "today's market rate as debt rolls over and the primary balance stays where it is.",
+            f"Base year {base_year} (IMF October WEO estimate). Forward g = IMF 5-year-ahead nominal growth unless "
+            "LTCMA overrides are set in config.py. Market r = latest 10y yield. Primary balance is headline, not "
+            "cyclically adjusted. Interest = primary minus overall balance, i.e. net interest, which understates "
+            "the gross burden, especially for Japan.")
 
 
 @safe("Cyclical sensitivity")
@@ -341,9 +349,11 @@ def s_cyclical(ftab):
                       xaxis_title="Years", yaxis_title="pp GDP")
     tbl = pd.DataFrame({"r beta (bp per pp gap)": C.R_BETA_TO_GAP_BP, "Extra debt after 5y (pp)": end})
     section("Cyclical sensitivity", fig_html(fig) + table_html(tbl, {"Extra debt after 5y (pp)": "{:.1f}"}),
+            "Extra debt from a standard recession versus baseline. The key asymmetry: safe havens get lower "
+            "interest rates in a recession, spread countries get higher ones, so the same downturn costs them more.",
             "Output gap path " + ", ".join(f"{g:.1%}" for g in C.RECESSION_GAP_PATH)
-            + f"; semi-elasticity {C.SEMI_ELASTICITY}. Key asymmetry: safe havens get lower r in "
-            "recession, spread countries get higher r. Edit betas in config.py.")
+            + f"; budget semi-elasticity {C.SEMI_ELASTICITY}; interest-rate response per pp of output gap as "
+            "shown (edit in config.py).")
 
 
 @safe("Term premium (ACM)")
@@ -380,18 +390,18 @@ def s_tp(data, tp, acm_res):
         body += "<p class='warn'>" + html.escape("; ".join(acm_res["notes"])) + "</p>"
 
     section("Term premium (ACM)", body,
-            "Adrian-Crump-Moench model as implemented by Bloomberg Economics: zero curves 1m–30y "
-            "(Fed GSW, Bundesbank, BoE, Japan MoF bootstrapped), 5 principal-component factors, VAR(1), "
-            "three-step regressions on month-end data, applied to the latest daily curve. Term premium = "
-            "observed yield minus model risk-free yield. Validation vs Bloomberg Economics' published 10y "
-            "estimates for 28 Jan 2026 (US 81bp, UK 123bp, DE 112bp): this model's Jan-26 month-end is "
-            "US ~54bp, UK ~138bp, DE ~115bp; the US gap reflects a different short rate and curve source "
-            "(correlation with the NY Fed series 0.996). Japan (MoF par curve bootstrapped to zeros, sample "
-            "from 1992): Aug-26 month-end ~220bp vs Bloomberg Intelligence BIFITPJP 238bp (Daiwa's model: "
-            "184bp). Samples starting after 1999 are dominated by the zero bound and should not be used. "
-            "France: no free zero curve — see spreads.")
-
-
+            "Term premium = the extra yield investors demand over the expected path of policy rates. A rising "
+            "premium with stable rate expectations points to supply, fiscal or inflation-risk concerns rather "
+            "than monetary policy. The 30y premium is where fiscal and supply pressure shows first.",
+            "Adrian-Crump-Moench model as implemented by Bloomberg Economics: zero curves 1m–30y (Fed GSW, "
+            "Bundesbank, BoE, Japan MoF par curve bootstrapped to zeros), 5 principal-component factors, VAR(1), "
+            "three-step regressions on month-end data, applied to the latest daily curve; term premium = "
+            "observed yield minus model risk-free yield. Samples: US from 1961, Germany 1998, UK 1996, Japan "
+            "1992. Validation vs Bloomberg Economics' 10y estimates for 28 Jan 2026 (US 81bp, UK 123bp, DE "
+            "112bp): this model's Jan-26 month-end is US ~54bp, UK ~138bp, DE ~115bp; the US gap reflects a "
+            "different short rate and curve source (correlation with the NY Fed series 0.996). Japan: Aug-26 "
+            "~220bp vs Bloomberg Intelligence BIFITPJP 238bp and Daiwa 184bp; samples starting after 1999 are "
+            "dominated by the zero bound and should not be used. France: no free zero curve, see spreads.")
 def _pctile(s: pd.Series) -> float:
     s = s.dropna()
     return float((s <= s.iloc[-1]).mean())
@@ -456,11 +466,14 @@ def s_priced(data, acm_res, ftab):
                                                "Percentile since 2008": "{:.0%}", "2012–19 avg": "{:.0f}",
                                                "Peak": "{:.0f}"})
     section("How much is priced", body,
-            "Descriptive only. US, Germany, UK, Japan: today's ACM term premium (bp) against its own "
-            "monthly history since 1998, with the rate backdrop alongside — pre-QE premia were earned at "
-            "higher yield levels and inflation uncertainty, so 1998–07 is not a pure 'normal'. France and "
-            "Italy: 10y spread to Bunds since 2008 (OECD monthly averages to 2016, then CNBC weekly closes and "
-            "the latest quote at the time of the daily run). The heatmap's 'priced' column is the percentile.")
+            "Where today's pricing sits in its own history. Percentiles show how unusual it is; the 1998–07 and "
+            "2012–19 averages separate 'back to pre-QE normal' from 'beyond normal'; the yield and volatility "
+            "columns show the rate backdrop, since pre-QE premia were earned at higher yields and inflation "
+            "uncertainty. Descriptive only: no claim about what share is fiscal.",
+            "US, Germany, UK, Japan: ACM 10y and 30y term premia, monthly since 1998, latest from the daily curve. "
+            "France and Italy: 10y spread to Bunds since 2008 (OECD monthly averages to 2016, then CNBC weekly "
+            "closes and the latest quote at the time of the daily run). The overview's 'priced' column uses "
+            "these percentiles.")
     return rank, {}
 
 
@@ -494,17 +507,18 @@ def s_triggers(data):
         fig3.update_layout(title="MOVE index (US rate volatility)")
         body += fig_html(fig3, 280)
     section("Triggers and market stress signals", body,
-            "Negative yield–currency correlation (yields up, currency down) is the classic fiscal "
-            "stress signature (UK 2022, US Apr 2025). Not covered by free data: CDS, OIS swap "
-            "spreads, auction tails, gross financing needs.")
+            "Yields rising while the currency falls is the classic fiscal-stress signature (UK 2022, US April "
+            "2025), so a negative correlation is the warning sign. MOVE tracks US rate volatility.",
+            "Daily yields: US Treasury, Bank of England, Japan MoF; FX and MOVE from Yahoo Finance. Not covered "
+            "by free data: CDS, OIS swap spreads, auction tails, gross financing needs.")
 
 
 @safe("Political calendar")
 def s_politics(pol):
     section("Political calendar and capacity", table_html(pol),
-            "Edit manual/politics.csv. Political constraint 1–5, 5 = least able to consolidate.")
-
-
+            "Political constraint 1–5, 5 = least able or willing to consolidate. Trigger dates and majority "
+            "likelihood feed the warning lights.",
+            "Edit manual/politics.csv. Dates marked approx. are estimates.")
 # ----------------------------------------------------------------- page
 CSS = """
 :root{--bg:#fafafa;--fg:#1a1a1a;--muted:#666;--card:#fff;--line:#e3e3e3;--accent:#1f4e79}
@@ -519,6 +533,7 @@ h2{margin:0 0 8px;font-size:18px;color:var(--accent)}h3{font-size:15px}.note{col
 .tbl{overflow-x:auto}table{border-collapse:collapse;font-size:13px;margin:8px 0}
 th,td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:right}th{background:#f3f5f8}
 tr th:first-child{text-align:left}.err{background:#fff3f3;padding:8px;font-size:11px;overflow-x:auto}
+.explain{margin:4px 0 10px}.details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 .warn{background:#fff8e1;border:1px solid #f0d58a;padding:8px 12px;border-radius:4px}
 """
 
@@ -579,10 +594,9 @@ def main():
     s_triggers(data)
     s_politics(pol)
     if ftab is not None:
-        s_warnings(data, ftab, prob, pol, base_year)
-        SECTIONS.insert(0, SECTIONS.pop())   # warning lights at the top
         s_heatmap(ftab, prob, sprob, pol)
-        SECTIONS.insert(1, SECTIONS.pop())   # relative heatmap second
+        SECTIONS.insert(0, SECTIONS.pop())   # relative heatmap at the top
+        s_warnings(data, ftab, prob, pol, base_year)   # warning lights last
 
     os.makedirs(SITE, exist_ok=True)
     with open(os.path.join(SITE, "index.html"), "w", encoding="utf-8") as f:

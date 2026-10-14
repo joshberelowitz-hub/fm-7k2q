@@ -1,38 +1,38 @@
-  ok   yahoo_JPY (0.1s, 361 rows)
-  ok   yahoo_DXY (0.1s, 169 rows)
-  ok   yahoo_GBPUSD (0.1s, 276 rows)
-  ok   yahoo_EURUSD (0.1s, 276 rows)
-  ok   yahoo_MOVE (0.1s, 288 rows)
-  ok   imf_GGXWDG_NGDP (0.8s, 1072 rows)
-  ok   bls_core_cpi (1.1s, 817 rows)
-  ok   acm_tp (1.4s, 784 rows)
-  ok   oecd_rates (1.4s, 441 rows)
-  ok   bbk_10y (1.8s, 5277 rows)
-  ok   imf_NGDP_RPCH (0.4s, 1247 rows)
-  ok   imf_GGXCNL_NGDP (0.5s, 1111 rows)
-  ok   imf_GGXONLB_NGDP (0.4s, 1086 rows)
-  ok   imf_PCPIPCH (0.4s, 1246 rows)
-  ok   imf_NGAP_NPGDP (0.4s, 1001 rows)
-  ok   mof_jgb (2.6s, 5084 rows)
-  ok   boe_10y (4.3s, 5250 rows)
-  ok   ust_curve (6.0s, 5200 rows)
+  ok   yahoo_DXY (0.2s, 5231 rows)
+  ok   yahoo_JPY (0.2s, 5391 rows)
+  ok   yahoo_GBPUSD (0.2s, 5403 rows)
+  ok   yahoo_EURUSD (0.3s, 5391 rows)
+  ok   yahoo_MOVE (0.1s, 5137 rows)
+  ok   imf_GGXWDG_NGDP (0.5s, 1072 rows)
+  ok   imf_GGXCNL_NGDP (0.8s, 1111 rows)
+  ok   acm_tp (1.9s, 784 rows)
+  ok   oecd_rates (2.0s, 441 rows)
+  ok   bbk_10y (2.1s, 5277 rows)
+  ok   mof_jgb (2.2s, 5084 rows)
+  ok   imf_GGXONLB_NGDP (0.5s, 1086 rows)
+  ok   imf_PCPIPCH (0.7s, 1246 rows)
+  ok   imf_NGAP_NPGDP (0.5s, 1001 rows)
+  ok   imf_NGDP_RPCH (0.8s, 1247 rows)
+  ok   boe_10y (2.7s, 5250 rows)
+  ok   ust_real_curve (7.8s, 5199 rows)
+  ok   ust_curve (8.4s, 5200 rows)
 Wrote site/index.html — 10 sections, 0 warnings
 DATA HEALTH:
-  yahoo_JPY                                fresh                                                        2026-10-14
   yahoo_DXY                                fresh                                                        2026-10-14
+  yahoo_JPY                                fresh                                                        2026-10-14
   yahoo_GBPUSD                             fresh                                                        2026-10-14
   yahoo_EURUSD                             fresh                                                        2026-10-14
   yahoo_MOVE                               fresh                                                        2026-10-13
   imf_GGXWDG_NGDP                          fresh                                                        
-  bls_core_cpi                             fresh                                                        2025-01-01
+  imf_GGXCNL_NGDP                          fresh                                                        
   acm_tp                                   fresh                                                        2026-09-30
   oecd_rates                               fresh                                                        2026-09-01
-  imf_NGDP_RPCH                            fresh                                                        
-  imf_GGXCNL_NGDP                          fresh                                                        
   bbk_10y                                  fresh                                                        2026-10-13
-  imf_PCPIPCH                              fresh                                                        
-  imf_GGXONLB_NGDP                         fresh                                                        
-  imf_NGAP_NPGDP                           fresh                                                        
   mof_jgb                                  fresh                                                        2026-10-13
+  imf_GGXONLB_NGDP                         fresh                                                        
+  imf_PCPIPCH                              fresh                                                        
+  imf_NGAP_NPGDP                           fresh                                                        
+  imf_NGDP_RPCH                            fresh                                                        
   boe_10y                                  fresh                                                        2026-10-12
+  ust_real_curve                           fresh                                                        2026-10-13
   ust_curve                                fresh                                                        2026-10-13

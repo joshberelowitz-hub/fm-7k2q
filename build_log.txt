@@ -1,76 +1,38 @@
-  FAIL fred_IRLTLT01GBM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01JPM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01CAM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01FRM156N (30.3s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01USM156N (30.3s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01ITM156N (30.3s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01DEM156N (30.3s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01AUM156N (30.3s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01DEM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01SEM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IRLTLT01CHM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01ITM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)  FAIL fred_IR3TIB01FRM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-
-  FAIL fred_IR3TIB01GBM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01USM156N (30.3s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01JPM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01CAM156N (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01SEM156N (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01AUM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_DGS10 (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_DTWEXBGS (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_IR3TIB01CHM156N (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_DGS30 (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_THREEFYTP10 (30.2s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_DEXJPUS (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_DEXUSUK (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_DEXUSEU (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL fred_CPILFESL (30.1s): ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read timeout=30)
-  FAIL imf_GGXCNL_NGDP (0.2s): HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api/v1/GGXCNL_NGDP/AUS/AUT/BEL/CAN/CHE/DEU/
-  FAIL imf_GGXWDG_NGDP (0.2s): HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api/v1/GGXWDG_NGDP/AUS/AUT/BEL/CAN/CHE/DEU/
-  FAIL imf_NGAP_NPGDP (0.3s): HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api/v1/NGAP_NPGDP/AUS/AUT/BEL/CAN/CHE/DEU/D
-  FAIL imf_NGDP_RPCH (0.3s): HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH/AUS/AUT/BEL/CAN/CHE/DEU/DN
-  FAIL imf_PCPIPCH (0.3s): HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api/v1/PCPIPCH/AUS/AUT/BEL/CAN/CHE/DEU/DNK/
-  FAIL imf_GGXONLB_NGDP (0.3s): HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api/v1/GGXONLB_NGDP/AUS/AUT/BEL/CAN/CHE/DEU
-  ok   yahoo_MOVE (0.9s)
-Wrote site/index.html — 6 sections, 4 warnings
-  WARNING: Fiscal table: TypeError: 'NoneType' object is not subscriptable
-  WARNING: Term premium decomposition: IndexError: single positional indexer is out-of-bounds
-  WARNING: Global term premium: how much is fiscal?: IndexError: index 0 is out of bounds for axis 0 with size 0
-  WARNING: Triggers and market stress signals: TypeError: Only valid with DatetimeIndex, TimedeltaIndex or PeriodIndex, but got an instance of 'RangeIndex'
+  ok   yahoo_JPY (0.1s, 361 rows)
+  ok   yahoo_DXY (0.1s, 169 rows)
+  ok   yahoo_GBPUSD (0.1s, 276 rows)
+  ok   yahoo_EURUSD (0.1s, 276 rows)
+  ok   yahoo_MOVE (0.1s, 288 rows)
+  ok   imf_GGXWDG_NGDP (0.8s, 1072 rows)
+  ok   bls_core_cpi (1.1s, 817 rows)
+  ok   acm_tp (1.4s, 784 rows)
+  ok   oecd_rates (1.4s, 441 rows)
+  ok   bbk_10y (1.8s, 5277 rows)
+  ok   imf_NGDP_RPCH (0.4s, 1247 rows)
+  ok   imf_GGXCNL_NGDP (0.5s, 1111 rows)
+  ok   imf_GGXONLB_NGDP (0.4s, 1086 rows)
+  ok   imf_PCPIPCH (0.4s, 1246 rows)
+  ok   imf_NGAP_NPGDP (0.4s, 1001 rows)
+  ok   mof_jgb (2.6s, 5084 rows)
+  ok   boe_10y (4.3s, 5250 rows)
+  ok   ust_curve (6.0s, 5200 rows)
+Wrote site/index.html — 10 sections, 0 warnings
 DATA HEALTH:
-  fred_IRLTLT01GBM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01JPM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01CAM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01FRM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01USM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01ITM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01AUM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01DEM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01DEM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01SEM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IRLTLT01CHM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01ITM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01FRM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01GBM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01USM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01JPM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01CAM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01SEM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01AUM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_DGS10                               FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_DTWEXBGS                            FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_IR3TIB01CHM156N                     FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_DGS30                               FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_THREEFYTP10                         FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_DEXJPUS                             FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_DEXUSUK                             FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_DEXUSEU                             FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  fred_CPILFESL                            FAILED: ReadTimeout: HTTPSConnectionPool(host='fred.stlouisfed.org', port=443): Read timed out. (read 
-  imf_GGXCNL_NGDP                          FAILED: HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api 
-  imf_GGXWDG_NGDP                          FAILED: HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api 
-  imf_NGAP_NPGDP                           FAILED: HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api 
-  imf_NGDP_RPCH                            FAILED: HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api 
-  imf_PCPIPCH                              FAILED: HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api 
-  imf_GGXONLB_NGDP                         FAILED: HTTPError: 403 Client Error: Forbidden for url: https://www.imf.org/external/datamapper/api 
+  yahoo_JPY                                fresh                                                        2026-10-14
+  yahoo_DXY                                fresh                                                        2026-10-14
+  yahoo_GBPUSD                             fresh                                                        2026-10-14
+  yahoo_EURUSD                             fresh                                                        2026-10-14
   yahoo_MOVE                               fresh                                                        2026-10-13
+  imf_GGXWDG_NGDP                          fresh                                                        
+  bls_core_cpi                             fresh                                                        2025-01-01
+  acm_tp                                   fresh                                                        2026-09-30
+  oecd_rates                               fresh                                                        2026-09-01
+  imf_NGDP_RPCH                            fresh                                                        
+  imf_GGXCNL_NGDP                          fresh                                                        
+  bbk_10y                                  fresh                                                        2026-10-13
+  imf_PCPIPCH                              fresh                                                        
+  imf_GGXONLB_NGDP                         fresh                                                        
+  imf_NGAP_NPGDP                           fresh                                                        
+  mof_jgb                                  fresh                                                        2026-10-13
+  boe_10y                                  fresh                                                        2026-10-12
+  ust_curve                                fresh                                                        2026-10-13

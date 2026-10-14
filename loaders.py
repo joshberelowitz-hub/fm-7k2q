@@ -406,6 +406,7 @@ def mock_all(seed: int = 1) -> dict:
     imf_data["debt"] = debt
     imf_data["primary"] = prim
     imf_data["overall"] = prim - debt * 0.025
+    imf_data["revenue"] = pd.DataFrame(rng.normal(40, 5, debt.shape), index=years, columns=iso_all)
     imf_data["real_g"] = pd.DataFrame(rng.normal(1.5, 1.2, debt.shape), index=years, columns=iso_all)
     imf_data["infl"] = pd.DataFrame(rng.normal(2.2, 0.8, debt.shape), index=years, columns=iso_all)
     move = pd.Series(90 + np.cumsum(rng.normal(0, 1, len(d))) * 0.2, index=d)

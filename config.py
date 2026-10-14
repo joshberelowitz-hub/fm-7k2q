@@ -25,6 +25,7 @@ IMF_INDICATORS = {
     "primary": "GGXONLB_NGDP",
     "real_g": "NGDP_RPCH",
     "infl": "PCPIPCH",
+    "revenue": "GGR_NGDP",
 }
 
 # --- Assumptions you will want to set ---------------------------------------
@@ -45,3 +46,14 @@ SEMI_ELASTICITY = 0.5
 
 
 
+
+# --- Warning lights: absolute thresholds (amber, red). Edit freely.
+WARN = {
+    "r_g_mkt":       (0.0, 0.01),    # r − g at market rates (decimal)
+    "debt_10y_chg":  (0.10, 0.20),   # debt/GDP change over 10y at market r, primary balance flat
+    "gap_vs_best":   (0.0, 0.02),    # required PB minus best 5-year average PB
+    "int_revenue":   (0.10, 0.15),   # net interest / general government revenue
+    "priced_pctile": (0.80, 0.95),   # term premium (US/DE/UK/JP) or spread to Bunds (FR/IT) percentile
+    "fx_yield_corr": (-0.2, -0.4),   # 60-day correlation of daily yield and currency changes (lower = worse)
+    "trigger_days":  (365, 182),     # days until next binding election / budget deadline (fewer = worse)
+}

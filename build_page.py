@@ -143,6 +143,113 @@ def s_health():
     section("Data health", body)
 
 
+@safe("Warning lights")
+def s_warnings(data, ftab, rank, pol, base_year):
+    W = C.WARN
+    imf = data["imf"]
+    d = data["daily"]
+    today = pd.Timestamp(dt.date.today())
+
+    def lvl(v, key, higher_worse=True):
+        if v is None or pd.isna(v):
+            return np.nan
+        a, r = W[key]
+        if higher_worse:
+            return 2 if v > r else 1 if v > a else 0
+        return 2 if v < r else 1 if v < a else 0
+
+    fx_pairs = {"US": ("US10Y", "USD_BROAD", 1), "UK": ("UK10Y", "USD_PER_GBP", 1),
+                "JP": ("JP10Y", "JPY_PER_USD", -1)}
+    vals, lv = {}, {}
+    for c in C.COUNTRIES:
+        r = ftab.loc[c]
+        m = C.AVG_MATURITY.get(c, 7)
+        rp = np.array([r.eff_r + (r.mkt_r_10y - r.eff_r) * min(1, (t + 1) / m) for t in range(10)])
+        path = F.project_debt(r.debt, rp, r.fwd_g, r.primary_bal, 10)
+        i3 = C.ISO3[c]
+        try:
+            net_int = (imf["primary"][i3] - imf["overall"][i3]).get(base_year)
+            rev = imf["revenue"][i3].get(base_year)
+            int_rev = net_int / rev if rev else np.nan
+        except Exception:  # noqa: BLE001
+            int_rev = np.nan
+        corr = np.nan
+        if c in fx_pairs and {fx_pairs[c][0], fx_pairs[c][1]} <= set(d.columns):
+            y, f, s = fx_pairs[c]
+            x = d[[y, f]].dropna()
+            x = pd.DataFrame({"y": x[y].diff(), "f": s * np.log(x[f]).diff()}).dropna().iloc[-60:]
+            corr = x["y"].corr(x["f"]) if len(x) > 30 else np.nan
+        try:
+            days = (pd.Timestamp(pol.loc[c, "trigger_date"]) - today).days
+        except Exception:  # noqa: BLE001
+            days = np.nan
+        vals[c] = {"r−g (mkt)": r.r_g_mkt, "Debt Δ 10y": path[-1] - path[0], "Req. PB vs best": r.gap_vs_best,
+                   "Net interest / revenue": int_rev, "Priced percentile": rank.get(c, np.nan),
+                   "Yield–FX corr (60d)": corr, "Days to trigger": days}
+        lv[c] = {"r−g (mkt)": lvl(r.r_g_mkt, "r_g_mkt"), "Debt Δ 10y": lvl(path[-1] - path[0], "debt_10y_chg"),
+                 "Req. PB vs best": lvl(r.gap_vs_best, "gap_vs_best"),
+                 "Net interest / revenue": lvl(int_rev, "int_revenue"),
+                 "Priced percentile": lvl(rank.get(c, np.nan), "priced_pctile"),
+                 "Yield–FX corr (60d)": lvl(corr, "fx_yield_corr", higher_worse=False),
+                 "Days to trigger": lvl(days, "trigger_days", higher_worse=False)}
+    V, Lv = pd.DataFrame(vals).T, pd.DataFrame(lv).T
+    fund_cols = ["r−g (mkt)", "Debt Δ 10y", "Req. PB vs best", "Net interest / revenue"]
+    mkt_cols = ["Priced percentile", "Yield–FX corr (60d)"]
+    status = {}
+    for c in V.index:
+        Fm, Mm, Tm = Lv.loc[c, fund_cols].max(), Lv.loc[c, mkt_cols].max(), Lv.loc[c, "Days to trigger"]
+        if Fm == 2 and Mm == 2:
+            s = "WORRY"
+        elif Fm >= 1 and Mm >= 1:
+            s = "WATCH"
+        elif Fm == 2:
+            s = "SLOW BURN"
+        elif Mm == 2:
+            s = "MARKET-LED"
+        else:
+            s = "OK"
+        if Tm == 2 and s in ("WORRY", "WATCH"):
+            s += " — trigger <6m"
+        status[c] = s
+    fmt = {"r−g (mkt)": "{:+.1%}", "Debt Δ 10y": "{:+.0%}", "Req. PB vs best": "{:+.1%}",
+           "Net interest / revenue": "{:.0%}", "Priced percentile": "{:.0%}",
+           "Yield–FX corr (60d)": "{:+.2f}", "Days to trigger": "{:.0f}"}
+    shade = {0: "#e8f5e9", 1: "#fff3cd", 2: "#f8d7da"}
+    scol = {"WORRY": "#f5c6cb", "WATCH": "#ffe8a1", "SLOW BURN": "#fde2c8", "MARKET-LED": "#fde2c8", "OK": "#d4edda"}
+    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Status"])
+    rows = ""
+    for c in V.index:
+        cells = ""
+        for k in V.columns:
+            v, l_ = V.loc[c, k], Lv.loc[c, k]
+            txt = "n/a" if pd.isna(v) else fmt[k].format(v)
+            bg = shade.get(int(l_), "#fff") if pd.notna(l_) else "#f4f4f4"
+            cells += f'<td style="background:{bg}">{txt}</td>'
+        s = status[c]
+        cells += f'<td style="background:{scol.get(s.split(" —")[0], "#fff")};font-weight:bold">{s}</td>'
+        rows += f"<tr><th>{c}</th>{cells}</tr>"
+    body = f'<div class="tbl"><table><tr><th></th>{hdr}</tr>{rows}</table></div>'
+    th = "; ".join([
+        f"r−g amber >{W['r_g_mkt'][0]:+.0%}, red >{W['r_g_mkt'][1]:+.0%}",
+        f"debt Δ amber >{W['debt_10y_chg'][0]:+.0%}, red >{W['debt_10y_chg'][1]:+.0%}",
+        f"PB gap amber >{W['gap_vs_best'][0]:+.0%}, red >{W['gap_vs_best'][1]:+.0%}",
+        f"interest/revenue amber >{W['int_revenue'][0]:.0%}, red >{W['int_revenue'][1]:.0%}",
+        f"priced amber >{W['priced_pctile'][0]:.0%}, red >{W['priced_pctile'][1]:.0%}",
+        f"yield–FX corr amber <{W['fx_yield_corr'][0]}, red <{W['fx_yield_corr'][1]}",
+        f"trigger amber <{W['trigger_days'][0]}d, red <{W['trigger_days'][1]}d"])
+    section("Warning lights (absolute)", body,
+            "Fixed thresholds, not rankings — a country can be red even if it is the best of the six. "
+            "Fundamentals: r−g at market rates; debt change over 10 years if effective r converges to market r "
+            "and the primary balance stays at its current level; required primary balance minus best 5-year "
+            "record; IMF net interest / revenue (net interest understates Japan's gross burden). Market: "
+            "term premium (US/DE/UK/JP) or spread-to-Bund (FR/IT) percentile in own history; 60-day "
+            "correlation of daily 10y yield and currency changes (negative = yields up with currency down, the "
+            "fiscal-stress signature; not meaningful within the euro). Trigger: days to the next binding "
+            "election or budget deadline (manual/politics.csv). Status: WORRY = red fundamental AND red "
+            "market; WATCH = amber-or-worse on both; SLOW BURN = red fundamental only; MARKET-LED = red "
+            "market only. Thresholds: " + th + ". All editable in config.py.")
+
+
 @safe("Overview heatmap")
 def s_heatmap(ftab, prob, spreads_prob, pol):
     t = pd.DataFrame(index=C.COUNTRIES)
@@ -169,7 +276,7 @@ def s_heatmap(ftab, prob, spreads_prob, pol):
     rows = "".join(f"<tr><th>{i}</th>" + "".join(cell(fund.loc[i, c], c) for c in fund.columns) + "</tr>"
                    for i in fund.index)
     body = f'<div class="tbl"><table><tr><th></th>{hdr}</tr>{rows}</table></div>'
-    section("Overview", body,
+    section("Overview (relative)", body,
             "Scores 1–5, 5 = most stressed, ranked across these six countries. "
             "'composite' averages the three fundamentals columns (raw values in the sections below). 'Fundamentals minus priced' "
             "positive (red) = fundamentals rank worse than market pricing; negative (green) = market "
@@ -464,8 +571,10 @@ def main():
     s_triggers(data)
     s_politics(pol)
     if ftab is not None:
+        s_warnings(data, ftab, prob, pol, base_year)
+        SECTIONS.insert(0, SECTIONS.pop())   # warning lights at the top
         s_heatmap(ftab, prob, sprob, pol)
-        SECTIONS.insert(0, SECTIONS.pop())   # heatmap goes to the top
+        SECTIONS.insert(1, SECTIONS.pop())   # relative heatmap second
 
     os.makedirs(SITE, exist_ok=True)
     with open(os.path.join(SITE, "index.html"), "w", encoding="utf-8") as f:

@@ -2,11 +2,9 @@ import requests, time, os
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
 os.makedirs("probe_samples", exist_ok=True)
 URLS = {
- "stooq_fr.csv": "https://stooq.com/q/d/l/?s=10fry.b&i=d",
- "stooq_it.csv": "https://stooq.com/q/d/l/?s=10ity.b&i=d",
- "stooq_de.csv": "https://stooq.com/q/d/l/?s=10dey.b&i=d",
- "cnbc_quote.json": "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=FR10Y-FR%7CIT10Y-IT%7CDE10Y-DE&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json",
- "cnbc_hist_it.json": "https://ts-api.cnbc.com/harmony/app/charts/5Y.json?symbol=IT10Y-IT",
+ "imf_ggsb.json": "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/USA+FRA+DEU+ITA+JPN+GBR.GGSB_NPGDP.A",
+ "imf_ggcbp.json": "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/USA+FRA+DEU+ITA+JPN+GBR.GGCBP_G01_PGDP_PT.A",
+ "imf_gginc.json": "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/USA+FRA+DEU+ITA+JPN+GBR.GGXCNL_NGDP.A",
 }
 for k, u in URLS.items():
     t = time.time()

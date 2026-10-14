@@ -303,7 +303,7 @@ def load_curves() -> dict:
 # ---------------------------------------------------------------- all
 def load_all() -> dict:
     from concurrent.futures import ThreadPoolExecutor
-    iso_all = sorted(set(C.PANEL_ISO3) | {C.ISO3[c] for c in C.COUNTRIES})
+    iso_all = sorted({C.ISO3[c] for c in C.COUNTRIES})
     jobs = {
         "oecd": lambda: _cached("oecd_rates", _oecd),
         "ust": lambda: _cached("ust_curve", _treasury),
@@ -372,7 +372,7 @@ def mock_all(seed: int = 1) -> dict:
         "US_BE10": 2.2 + np.cumsum(rng.normal(0, 0.01, len(d))) * 0.3,
     }, index=d)
     years = range(1990, 2032)
-    iso_all = sorted(set(C.PANEL_ISO3) | {C.ISO3[c] for c in C.COUNTRIES})
+    iso_all = sorted({C.ISO3[c] for c in C.COUNTRIES})
     debt0 = {"USA": 60, "DEU": 40, "FRA": 40, "ITA": 95, "JPN": 70, "GBR": 30}
     imf_data = {}
     debt = pd.DataFrame({i: np.linspace(debt0.get(i, rng.uniform(20, 70)),
@@ -385,7 +385,6 @@ def mock_all(seed: int = 1) -> dict:
     imf_data["overall"] = prim - debt * 0.025
     imf_data["real_g"] = pd.DataFrame(rng.normal(1.5, 1.2, debt.shape), index=years, columns=iso_all)
     imf_data["infl"] = pd.DataFrame(rng.normal(2.2, 0.8, debt.shape), index=years, columns=iso_all)
-    imf_data["output_gap"] = pd.DataFrame(rng.normal(0, 1.5, debt.shape), index=years, columns=iso_all)
     move = pd.Series(90 + np.cumsum(rng.normal(0, 1, len(d))) * 0.2, index=d)
     HEALTH.append(("MOCK DATA", "synthetic test data — not real", str(d[-1])[:10]))
     return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_data, "move": move}

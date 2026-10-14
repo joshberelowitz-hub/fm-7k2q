@@ -132,41 +132,6 @@ def tp_proxies(data: dict) -> pd.DataFrame:
     return pd.DataFrame(out).dropna(how="all")
 
 
-def fiscal_fatigue(data: dict, base_year: int, ftab: pd.DataFrame) -> pd.DataFrame:
-    imf = data["imf"]
-    debt = imf["debt"].loc[:base_year - 1] / 100
-    prim = imf["primary"].loc[:base_year - 1] / 100
-    gap = imf.get("output_gap")
-    rows_pb, rows_d, rows_gap, rows_c = [], [], [], []
-    for i in [x for x in C.PANEL_ISO3 if x in debt and x in prim]:
-        dd = debt[i].shift(1)
-        df = pd.DataFrame({"pb": prim[i], "d": dd})
-        if gap is not None and i in gap:
-            df["gap"] = gap[i].loc[:base_year - 1] / 100
-        df = df.dropna()
-        rows_pb.append(df["pb"]); rows_d.append(df["d"]); rows_c += [i] * len(df)
-        if "gap" in df:
-            rows_gap.append(df["gap"])
-    pb = pd.concat(rows_pb, ignore_index=True)
-    d = pd.concat(rows_d, ignore_index=True)
-    ctrl = None
-    if gap is not None and len(rows_gap) == len(rows_pb):
-        ctrl = pd.concat(rows_gap, ignore_index=True).rename("gap").to_frame()
-    co = F.fit_reaction_function(pb, d, ctrl)
-    fitted = co["const"] + co["d"] * d + co["d2"] * d ** 2 + co["d3"] * d ** 3
-    resid = pd.Series((pb - fitted).values, index=rows_c)
-    out = {}
-    for c in C.COUNTRIES:
-        fe = resid.get(C.ISO3[c])
-        adj = float(np.mean(fe)) if fe is not None else 0.0
-        lim = F.debt_limit(co, ftab.loc[c, "mkt_r_10y"], ftab.loc[c, "fwd_g"], intercept_adj=adj)
-        out[c] = {"debt": ftab.loc[c, "debt"], "debt_limit": lim,
-                  "fiscal_space": F.fiscal_space(ftab.loc[c, "debt"], lim)}
-    res = pd.DataFrame(out).T.astype(float)
-    res.attrs["coefs"] = co
-    return res
-
-
 # ----------------------------------------------------------------- sections
 @safe("Data health")
 def s_health():
@@ -179,7 +144,7 @@ def s_health():
 
 
 @safe("Overview heatmap")
-def s_heatmap(ftab, fat, prob, spreads_prob, pol):
+def s_heatmap(ftab, prob, spreads_prob, pol):
     t = pd.DataFrame(index=C.COUNTRIES)
     t["Adjustment needed at market r"] = ftab["adj_gap_mkt"]
     t["Required PB vs best 5y record"] = ftab["gap_vs_best"]
@@ -246,27 +211,6 @@ def s_dynamics(data, ftab, base_year):
             "10y yield. Primary balance is headline, not cyclically adjusted. Interest is backed out as "
             "primary minus overall balance, i.e. NET interest — this understates the gross burden, "
             "especially for Japan (large government financial assets, BoJ remittances).")
-
-
-@safe("Fiscal capacity (fiscal fatigue)")
-def s_fatigue(fat):
-    co = fat.attrs["coefs"]
-    show = fat.copy()
-    show.columns = ["Debt % GDP", "Debt limit", "Fiscal space"]
-    body = table_html(show, {c: "{:.0%}" for c in show.columns})
-    grid = np.linspace(0, 2.6, 200)
-    fig = go.Figure()
-    fig.add_scatter(x=grid * 100, y=(co["const"] + co["d"] * grid + co["d2"] * grid ** 2
-                                     + co["d3"] * grid ** 3) * 100, name="Reaction function (panel)")
-    fig.update_layout(title="Estimated primary balance response to debt (advanced-economy panel)",
-                      xaxis_title="Lagged debt, % GDP", yaxis_title="Primary balance, % GDP")
-    body += fig_html(fig, 350)
-    section("Fiscal capacity (fiscal fatigue)", body,
-            "Ghosh et al. (2013) approach: pooled cubic reaction function, country intercept from mean "
-            "residual. Debt limit = where the country's reaction function stops covering the r−g burden "
-            "at market r. Blank = no limit found in range (reaction function always covers, or never "
-            "does). Treat as indicative only — not used in the heatmap. IMF data on this API starts in 2001, "
-            "so the panel misses the high-debt consolidations of the 1990s that anchor the published estimates.")
 
 
 @safe("Cyclical sensitivity")
@@ -536,7 +480,6 @@ def main():
         tp.index = tp.index.to_period("M").to_timestamp()
     else:
         tp = safe("Term premium proxies")(tp_proxies)(data)
-    fat = None
 
     # build sections in display order; heatmap inserted at top afterwards
     s_health()
@@ -555,7 +498,7 @@ def main():
     s_triggers(data)
     s_politics(pol)
     if ftab is not None:
-        s_heatmap(ftab, fat, prob, sprob, pol)
+        s_heatmap(ftab, prob, sprob, pol)
         SECTIONS.insert(0, SECTIONS.pop())   # heatmap goes to the top
 
     os.makedirs(SITE, exist_ok=True)

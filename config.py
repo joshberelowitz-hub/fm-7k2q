@@ -18,11 +18,6 @@ ISO3 = {"US": "USA", "DE": "DEU", "FR": "FRA", "IT": "ITA", "JP": "JPN", "UK": "
 OECD2 = {"US": "US", "DE": "DE", "FR": "FR", "IT": "IT", "JP": "JP", "UK": "GB",
          "AU": "AU", "CA": "CA", "SE": "SE", "CH": "CH"}
 
-# Advanced-economy panel for the fiscal fatigue reaction function
-PANEL_ISO3 = ["AUS", "AUT", "BEL", "CAN", "CHE", "DEU", "DNK", "ESP", "FIN", "FRA", "GBR",
-              "GRC", "IRL", "ISL", "ITA", "JPN", "KOR", "NLD", "NOR", "NZL", "PRT", "SWE",
-              "USA", "ISR"]
-
 # IMF WEO indicators (api.imf.org) (% of GDP or % change)
 IMF_INDICATORS = {
     "debt": "GGXWDG_NGDP",
@@ -30,7 +25,6 @@ IMF_INDICATORS = {
     "primary": "GGXONLB_NGDP",
     "real_g": "NGDP_RPCH",
     "infl": "PCPIPCH",
-    "output_gap": "NGAP_NPGDP",     # optional; page works without it
 }
 
 # --- Assumptions you will want to set ---------------------------------------

@@ -516,9 +516,14 @@ def s_triggers(data):
 @safe("Political calendar")
 def s_politics(pol):
     section("Political calendar and capacity", table_html(pol),
-            "Political constraint 1–5, 5 = least able or willing to consolidate. Trigger dates and majority "
-            "likelihood feed the warning lights.",
-            "Edit manual/politics.csv. Dates marked approx. are estimates.")
+            "Political constraint, 1–5 with 5 = most constrained, is a weighted average of four judgements: "
+            "willingness (does the government want to consolidate?), track record (has the country delivered "
+            "before?), ability (can it legislate a package: majority, coalition cohesion, veto points?) and "
+            "external anchors (fiscal rules or conditional backstops forcing it; 5 = weak anchors). The "
+            "composite feeds the overview heatmap; trigger dates and majority likelihood feed the warning lights.",
+            "Weights: " + ", ".join(f"{k.replace('_', ' ')} {v:.0%}" for k, v in C.POLITICS_WEIGHTS.items())
+            + " (config.py). Sub-scores, election dates and majority ratings are judgements in "
+            "manual/politics.csv. Dates marked approx. are estimates.")
 # ----------------------------------------------------------------- page
 CSS = """
 :root{--bg:#fafafa;--fg:#1a1a1a;--muted:#666;--card:#fff;--line:#e3e3e3;--accent:#1f4e79}
@@ -566,6 +571,8 @@ def main():
     data = L.mock_all() if mock else L.load_all()
     base_year = dt.date.today().year
     pol = pd.read_csv(os.path.join(ROOT, "manual", "politics.csv")).set_index("country")
+    wts = C.POLITICS_WEIGHTS
+    pol.insert(0, "political_constraint_1to5", sum(pol[k] * w for k, w in wts.items()).round(1))
 
     ftab = safe("Fiscal table")(fiscal_table)(data, base_year)
     acm_res = None

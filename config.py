@@ -57,3 +57,6 @@ WARN = {
     "fx_yield_corr": (-0.2, -0.4),   # 60-day correlation of daily yield and currency changes (lower = worse)
     "trigger_days":  (365, 182),     # days until next binding election / budget deadline (fewer = worse)
 }
+
+# Political constraint score: weights on the 1–5 sub-scores in manual/politics.csv (5 = most constrained)
+POLITICS_WEIGHTS = {"willingness": 0.35, "track_record": 0.25, "ability": 0.25, "anchors": 0.15}

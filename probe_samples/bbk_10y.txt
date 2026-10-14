@@ -1,0 +1,51 @@
+﻿"";BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A;BBSIS.D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A_FLAGS
+"";Aus der Zinsstruktur abgeleitete Renditen für Bundeswertpapiere  mit jährl. Kuponzahlungen / RLZ 10 Jahre / Tageswerte;
+Dezimalstellen;2;
+Dimension;Eins;
+Einheit;PROZENT;
+Format der Zeitangabe;P1D;
+Kategorie;ZRZS;
+Stand vom;13.10.2026 12:15:44 Uhr;
+2026-09-01;3,28;
+2026-09-02;3,41;
+2026-09-03;3,38;
+2026-09-04;3,37;
+2026-09-05;.;Kein Wert vorhanden
+2026-09-06;.;Kein Wert vorhanden
+2026-09-07;3,37;
+2026-09-08;3,41;
+2026-09-09;3,41;
+2026-09-10;3,47;
+2026-09-11;3,53;
+2026-09-12;.;Kein Wert vorhanden
+2026-09-13;.;Kein Wert vorhanden
+2026-09-14;3,55;
+2026-09-15;3,58;
+2026-09-16;3,58;
+2026-09-17;3,55;
+2026-09-18;3,52;
+2026-09-19;.;Kein Wert vorhanden
+2026-09-20;.;Kein Wert vorhanden
+2026-09-21;3,49;
+2026-09-22;3,47;
+2026-09-23;3,49;
+2026-09-24;3,60;
+2026-09-25;3,60;
+2026-09-26;.;Kein Wert vorhanden
+2026-09-27;.;Kein Wert vorhanden
+2026-09-28;3,66;
+2026-09-29;3,65;
+2026-09-30;3,60;
+2026-10-01;3,62;
+2026-10-02;3,46;
+2026-10-03;.;Kein Wert vorhanden
+2026-10-04;.;Kein Wert vorhanden
+2026-10-05;3,47;
+2026-10-06;3,49;
+2026-10-07;3,52;
+2026-10-08;3,54;
+2026-10-09;3,50;
+2026-10-10;.;Kein Wert vorhanden
+2026-10-11;.;Kein Wert vorhanden
+2026-10-12;3,49;
+2026-10-13;3,46;

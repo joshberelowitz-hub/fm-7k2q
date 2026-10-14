@@ -1,0 +1,257 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<mes:Structure xmlns:mes="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message" xmlns:str="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure" xmlns:com="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xml="http://www.w3.org/XML/1998/namespace" xsi:schemaLocation="http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message ../../schemas/SDMXMessage.xsd">
+  <mes:Header>
+    <mes:ID>IDREF9087</mes:ID>
+    <mes:Test>false</mes:Test>
+    <mes:Prepared>2026-10-14T08:57:19.353552277Z</mes:Prepared>
+    <mes:Sender id="IMF"/>
+  </mes:Header>
+  <mes:Structures>
+    <str:Dataflows>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:ITS(3.0.1)" agencyID="IMF.RES" id="ITS" version="3.0.1" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">International Trade in Services (ITS)</com:Name>
+        <com:Description xml:lang="en">Using the IMF’s Balance of Payments Statistics database as a source, the statistics provided here are the first of its kind providing a compilation of detailed historic and new data on world trade in services. This can be a useful resource for researchers, policymakers and businesses for decisions in macroeconomic competitiveness and understanding how technological forces are affecting rapid resource reallocation in specific sectors. The dataset covers exports of services from 1970 to 2014. See reference Loungani, Mishra, Papageorgiou, Wang (2017). There is ongoing work to extend the dataset, which will be made available in the future.</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_ITS" version="3.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:WEO_2025_OCT_VINTAGE(1.0.0)" agencyID="IMF.RES" id="WEO_2025_OCT_VINTAGE" version="1.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle>H_WEO_PROJECTIONS</com:AnnotationTitle>
+            <com:AnnotationType>DATAFLOW_PRESENTATION</com:AnnotationType>
+            <com:AnnotationText xml:lang="en">presentation_title=WEO Projections; presentation_description=Real GDP growth (NGDP_RPCH) projections for aggregates and key economies</com:AnnotationText>
+          </com:Annotation>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="ORIGIN">
+            <com:AnnotationTitle>IMF.RES:WEO(9.0.0)</com:AnnotationTitle>
+            <com:AnnotationType>SYSTEM</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="VINTAGE">
+            <com:AnnotationTitle>Vintage for 2025-10-14</com:AnnotationTitle>
+            <com:AnnotationType>SYSTEM</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="REF_PERIOD">
+            <com:AnnotationTitle>2025-10-14</com:AnnotationTitle>
+            <com:AnnotationType>SYSTEM</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">World Economic Outlook (WEO) 2025 October</com:Name>
+        <com:Description xml:lang="en">World Economic Outlook (WEO) 2025 October</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_WEO_VINTAGE" version="1.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:ED(1.0.0)" agencyID="IMF.RES" id="ED" version="1.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle></com:AnnotationTitle>
+            <com:AnnotationType>DEFAULT_PRESENTATION </com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Export Diversification (ED)</com:Name>
+        <com:Description xml:lang="en">Covers 200 countries with data from 1962 to 2014. It has three main indicators: the Export Diversification Index, which can be disaggregated into sub-indices covering the Extensive Margin and the Intensive Margin. As these are Theil indices, higher values for all three correspond to lower export diversification.</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_ED" version="1.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:PCPS(9.0.0)" agencyID="IMF.RES" id="PCPS" version="9.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Primary Commodity Price System (PCPS)</com:Name>
+        <com:Description xml:lang="en">Indices of market prices for fuel and non-fuel commodities, and actual market prices for fuel and non-fuel commodities.</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_PCPS" version="10.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:SRD(1.0.0)" agencyID="IMF.RES" id="SRD" version="1.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="@SDMX">
+            <com:AnnotationTitle>TIME_PERIOD >=  1973</com:AnnotationTitle>
+            <com:AnnotationType>DEFAULT</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Structural Reform Database (SRD)</com:Name>
+        <com:Description xml:lang="en">The SRD contains data on a wide range of structural policies across different countries. These policies are things that affect how markets function, like labor laws, regulations on businesses, and trade policies.</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_SRD" version="1.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:CTOT(5.0.1)" agencyID="IMF.RES" id="CTOT" version="5.0.1" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Commodity Terms of Trade (CTOT)</com:Name>
+        <com:Description xml:lang="en">CTOT is a comprehensive database of country-specific commodity price indices for 182 economies covering the period from 1962 onwards. For each country, the change in the international price of up to 45 individual commodities is weighted using commodity-level trade data. The database includes a commodity terms-of-trade index—which proxies the windfall gains and losses of income associated with changes in world prices—as well as additional country-specific series, including commodity export and import price indices. It includes indices that are constructed using, alternatively, fixed weights (based on average trade flows over several decades) and time-varying weights (which can account for time variation in the mix of commodities traded and the overall importance of commodities in economic activity)</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_CTOT" version="6.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:WEO_2026_APR_VINTAGE(1.0.0)" agencyID="IMF.RES" id="WEO_2026_APR_VINTAGE" version="1.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle>H_WEO_PROJECTIONS</com:AnnotationTitle>
+            <com:AnnotationType>DATAFLOW_PRESENTATION</com:AnnotationType>
+            <com:AnnotationText xml:lang="en">presentation_title=WEO Projections; presentation_description=Real GDP growth (NGDP_RPCH) projections for aggregates and key economies</com:AnnotationText>
+          </com:Annotation>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle></com:AnnotationTitle>
+            <com:AnnotationType>DEFAULT_PRESENTATION </com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="@SDMX">
+            <com:AnnotationTitle>INDICATOR=NGDP_RPCH,COUNTRY=G001+G110+G200+G205+G400+G505+G603+G903</com:AnnotationTitle>
+            <com:AnnotationType>DEFAULT</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="ORIGIN">
+            <com:AnnotationTitle>IMF.RES:WEO(9.0.0)</com:AnnotationTitle>
+            <com:AnnotationType>SYSTEM</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="VINTAGE">
+            <com:AnnotationTitle>Vintage for 2026-04-14</com:AnnotationTitle>
+            <com:AnnotationType>SYSTEM</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="REF_PERIOD">
+            <com:AnnotationTitle>2026-04-14</com:AnnotationTitle>
+            <com:AnnotationType>SYSTEM</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">World Economic Outlook (WEO) 2026 April</com:Name>
+        <com:Description xml:lang="en">World Economic Outlook (WEO) 2026 April</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_WEO_VINTAGE" version="2.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:WEO(9.0.0)" agencyID="IMF.RES" id="WEO" version="9.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle>H_WEO_PROJECTIONS</com:AnnotationTitle>
+            <com:AnnotationType>DATAFLOW_PRESENTATION</com:AnnotationType>
+            <com:AnnotationText xml:lang="en">presentation_title=WEO Projections; presentation_description=Real GDP growth (NGDP_RPCH) projections for aggregates and key economies</com:AnnotationText>
+          </com:Annotation>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle></com:AnnotationTitle>
+            <com:AnnotationType>DEFAULT_PRESENTATION </com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="@SDMX">
+            <com:AnnotationTitle>INDICATOR=NGDP_RPCH,COUNTRY=G001+G110+G200+G205+G400+G505+G603+G903</com:AnnotationTitle>
+            <com:AnnotationType>DEFAULT</com:AnnotationType>
+          </com:Annotation>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">World Economic Outlook (WEO)</com:Name>
+        <com:Description xml:lang="en">The World Economic Outlook (WEO) database is created during the biannual WEO exercise, which begins in January and June of each year and results in the April and September/October WEO publication. Selected series from the publication are available in a database format. </com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_WEO" version="9.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:ECFIE(2.0.3)" agencyID="IMF.RES" id="ECFIE" version="2.0.3" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Earnings-Calls-based Firm Inflation Expectations (ECFIE)</com:Name>
+        <com:Description xml:lang="en">The Earnings-Calls-based Firm Inflation Expectations (ECFIE) index is a proxy for firms’ near-term inflation expectations, constructed through text analysis of earnings call transcripts from publicly listed companies. In addition to ECFIE, the dataset includes: a firms inflation expectations disagreement indicator, defined as the cross-firm variance of ECFIE within each country; and Mapped Earnings-Calls-based Firm Inflation Expectations  (MECFIE), a transformed version of the ECFIE mapped into percentage-change units, which maps the index into the same units as inflation expectations. A detailed description of the methodology, validation, and benchmarking is provided in the methodology note linked below. Suggested citation: Albrizio, S., Dizioli, A., and Simon, P. (2023). Mining the Gap: Extracting Firms’ Inflation Expectations from Earnings Calls. IMF Working Paper No. 2023/202. International Monetary Fund.</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_ECFIE" version="2.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:EQ(2.0.0)" agencyID="IMF.RES" id="EQ" version="2.0.0" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Export Quality (EQ)</com:Name>
+        <com:Description xml:lang="en">This dataset provides export quality indicators for over 800 products across 166 countries from 1963 to 2014, resulting in over 1.7 million observations.  Higher index values indicate higher quality, and the index is normalized with a value of 1 representing the 90th percentile of export quality among all exporters (the world frontier). Data can be aggregated at various levels, including by product according to the Standard International Trade Classification (SITC) up to the 4-digit level, by Broad Economic Categories (BEC) up to the 3-digit level, and by aggregate sectors such as Agriculture, Commodities, and Manufactures.</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_EQ" version="2.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+      <str:Dataflow urn="urn:sdmx:org.sdmx.infomodel.datastructure.Dataflow=IMF.RES:MPFT(7.0.1)" agencyID="IMF.RES" id="MPFT" version="7.0.1" isFinal="true" isExternalReference="false">
+        <com:Annotations>
+          <com:Annotation id="@IMF">
+            <com:AnnotationTitle>H_CL_MPFT_INDICATOR</com:AnnotationTitle>
+            <com:AnnotationType>DATAFLOW_PRESENTATION</com:AnnotationType>
+            <com:AnnotationText xml:lang="en">presentation_title=Monetary Policy Frameworks Toolkit;presentation_description=MPFT Indicator View</com:AnnotationText>
+          </com:Annotation>
+          <com:Annotation id="dataEngineSettings"/>
+          <com:Annotation id="origin"/>
+          <com:Annotation id="DataEngine">
+            <com:AnnotationTitle>timeseries_v2</com:AnnotationTitle>
+          </com:Annotation>
+          <com:Annotation id="isFinal"/>
+          <com:Annotation id="lastUpdatedAt"/>
+        </com:Annotations>
+        <com:Name xml:lang="en">Monetary Policy Frameworks Toolkit (MPFT)</com:Name>
+        <com:Description xml:lang="en">Monetary policy framework comprises the structures in place that enable and guide the conduct of monetary policy. In this project, we provide a multidimensional characterization of monetary policy frameworks across three pillars: Independence and Accountability, Policy and Operational Strategy, and Communications (IAPOC). This database covers 50 advanced economies, emerging markets, and low-income developing countries, from 2007 to 2018 (being extended).</com:Description>
+        <str:Structure>
+          <Ref agencyID="IMF.RES" id="DSD_MPFT" version="9.0.0" package="datastructure" class="DataStructure"/>
+        </str:Structure>
+      </str:Dataflow>
+    </str:Dataflows>
+  </mes:Structures>
+</mes:Structure>

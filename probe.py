@@ -2,9 +2,8 @@ import requests, time, os
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
 os.makedirs("probe_samples", exist_ok=True)
 URLS = {
- "mof_all.csv": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
- "mof_cur.csv": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv",
- "bbk_zero_daily.csv": "https://api.statistiken.bundesbank.de/rest/data/BBSIS/D.I.ZST.ZI.EUR.S1311.B.A604..R.A.A._Z._Z.A?format=csv&startPeriod=2026-09-01",
+ "ecb_fm_bb_daily.csv": "https://data-api.ecb.europa.eu/service/data/FM/D.DE+FR+IT.EUR.4F.BB..YLD?format=csvdata&startPeriod=2026-09-25",
+ "ecb_fm_bb_list.csv": "https://data-api.ecb.europa.eu/service/data/FM/D..EUR.4F.BB..YLD?format=csvdata&startPeriod=2026-10-08&detail=dataonly",
 }
 for k, u in URLS.items():
     t = time.time()

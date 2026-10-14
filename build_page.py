@@ -536,14 +536,12 @@ def main():
         tp.index = tp.index.to_period("M").to_timestamp()
     else:
         tp = safe("Term premium proxies")(tp_proxies)(data)
-    fat = safe("Fiscal fatigue")(fiscal_fatigue)(data, base_year, ftab) if ftab is not None else None
+    fat = None
 
     # build sections in display order; heatmap inserted at top afterwards
     s_health()
     if ftab is not None:
         s_dynamics(data, ftab, base_year)
-    if fat is not None:
-        s_fatigue(fat)
     if ftab is not None:
         s_cyclical(ftab)
     resid = s_tp(data, tp, acm_res) if tp is not None else None

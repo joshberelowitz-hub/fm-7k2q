@@ -183,8 +183,7 @@ def s_heatmap(ftab, fat, prob, spreads_prob, pol):
     t["Adjustment needed at market r"] = ftab["adj_gap_mkt"]
     t["Required PB vs best 5y record"] = ftab["gap_vs_best"]
     t["Political constraint"] = pol["political_constraint_1to5"].reindex(C.COUNTRIES)
-    t["Fiscal space"] = fat["fiscal_space"] if fat is not None else np.nan
-    fund = F.heatmap(t, {"Fiscal space": False})
+    fund = F.heatmap(t)
     priced = pd.Series(prob, dtype=float).reindex(C.COUNTRIES)
     sp = pd.Series(spreads_prob, dtype=float).reindex(C.COUNTRIES)
     priced = pd.concat([priced, sp], axis=1).max(axis=1)
@@ -208,7 +207,7 @@ def s_heatmap(ftab, fat, prob, spreads_prob, pol):
     body = f'<div class="tbl"><table><tr><th></th>{hdr}</tr>{rows}</table></div>'
     section("Overview", body,
             "Scores 1–5, 5 = most stressed, ranked across these six countries. "
-            "'composite' averages the four fundamentals columns. 'Fundamentals minus priced' "
+            "'composite' averages the three fundamentals columns (raw values in the sections below). 'Fundamentals minus priced' "
             "positive (red) = fundamentals look worse than markets are pricing; negative (green) = "
             "markets pricing more stress than fundamentals suggest.")
 
@@ -244,7 +243,8 @@ def s_dynamics(data, ftab, base_year):
             f"Base year {base_year} (IMF estimate). Required PB = d(r−g)/(1+g). Forward g = IMF "
             "5-year-ahead nominal growth unless LTCMA overrides are set in config.py. Market r = latest "
             "10y yield. Primary balance is headline, not cyclically adjusted. Interest is backed out as "
-            "primary minus overall balance.")
+            "primary minus overall balance, i.e. NET interest — this understates the gross burden, "
+            "especially for Japan (large government financial assets, BoJ remittances).")
 
 
 @safe("Fiscal capacity (fiscal fatigue)")
@@ -264,7 +264,8 @@ def s_fatigue(fat):
             "Ghosh et al. (2013) approach: pooled cubic reaction function, country intercept from mean "
             "residual. Debt limit = where the country's reaction function stops covering the r−g burden "
             "at market r. Blank = no limit found in range (reaction function always covers, or never "
-            "does). Treat as indicative: pooled, no proper fixed-effects estimation.")
+            "does). Treat as indicative only — not used in the heatmap. IMF data on this API starts in 2001, "
+            "so the panel misses the high-debt consolidations of the 1990s that anchor the published estimates.")
 
 
 @safe("Cyclical sensitivity")
@@ -332,9 +333,8 @@ def s_global(data, tp):
     drivers["dm_debt"] = [debt.get(d.year, np.nan) for d in drivers.index]
     if data.get("move") is not None:
         drivers["move"] = data["move"].resample("MS").mean().reindex(drivers.index)
-    if "US_CORE_CPI" in data["daily"]:
-        cpi = data["daily"]["US_CORE_CPI"].resample("MS").last()
-        drivers["us_core_infl"] = (cpi.pct_change(12) * 100).reindex(drivers.index)
+    if "US_BE10" in data["daily"]:
+        drivers["us_breakeven_10y"] = data["daily"]["US_BE10"].resample("MS").mean().reindex(drivers.index)
     drivers = drivers.dropna()
     g = glob.reindex(drivers.index)
     start = drivers.index[drivers.index >= pd.Timestamp(C.DECOMP_START)][0]
@@ -344,7 +344,7 @@ def s_global(data, tp):
     fig.update_layout(title=f"Change in global term premium factor, {start:%b %Y} → {end:%b %Y}, bp")
     section("Global term premium: how much is fiscal?", fig_html(fig, 340),
             "Regression of the global factor on average debt/GDP of the six (fiscal), MOVE (rate vol) "
-            "and US core inflation. Attribution = coefficient × change in driver. Short sample and "
+            "and the US 10y breakeven (inflation expectations). Attribution = coefficient × change in driver. Short sample and "
             "collinear drivers: read as an order of magnitude, not a point estimate.")
     return dec
 
@@ -486,7 +486,7 @@ def render(mock: bool) -> str:
 Public data only.</p></header><nav>{nav}</nav><main>{warn}{body}
 <section><h2>Method notes</h2><p class="note">Sources: IMF World Economic Outlook (api.imf.org), OECD (monthly 10y yields
 and 3m rates), US Treasury, NY Fed (ACM term premium), Bank of England, Bundesbank, Japan MoF (daily curves),
-Yahoo Finance (FX, DXY, MOVE), BLS via DBnomics (core CPI).
+Yahoo Finance (FX, DXY, MOVE).
 All modelling choices and calibrations are in config.py. This page is a research tool, not investment advice.</p></section>
 </main></body></html>"""
 

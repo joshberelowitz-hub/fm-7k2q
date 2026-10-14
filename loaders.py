@@ -11,7 +11,7 @@ Sources (all reachable from GitHub's servers, tested Oct 2026):
   Germany 10y .......... Bundesbank (daily)
   Japan curve .......... Ministry of Finance (daily)
   FX, DXY, MOVE ........ Yahoo Finance chart API
-  US core CPI .......... DBnomics mirror of BLS
+  US 10y breakeven ..... Treasury nominal minus real curve
 """
 from __future__ import annotations
 
@@ -139,6 +139,23 @@ def _treasury() -> pd.DataFrame:
     return df.set_index("Date").sort_index().rename(columns={"10 Yr": "US10Y", "30 Yr": "US30Y"})
 
 
+def _treasury_real() -> pd.DataFrame:
+    parts = []
+    for y in range(2006, dt.date.today().year + 1):
+        url = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
+               f"daily-treasury-rates.csv/{y}/all?type=daily_treasury_real_yield_curve"
+               f"&field_tdr_date_value={y}&page&_format=csv")
+        try:
+            p = pd.read_csv(io.StringIO(_get(url).text))
+            col = [c for c in p.columns if c.strip().upper() in ("10 YR", "10 YEAR")][0]
+            parts.append(p[["Date", col]].rename(columns={col: "US10Y_REAL"}))
+        except Exception:  # noqa: BLE001
+            continue
+    df = pd.concat(parts)
+    df["Date"] = pd.to_datetime(df["Date"])
+    return df.set_index("Date").sort_index()
+
+
 def _acm() -> pd.DataFrame:
     r = _get("https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls")
     xl = pd.read_excel(io.BytesIO(r.content), sheet_name=None)
@@ -187,7 +204,9 @@ def _mof() -> pd.DataFrame:
 
 
 def _yahoo(ticker: str, name: str) -> pd.DataFrame:
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=max&interval=1d"
+    p2 = int(time.time())
+    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}"
+           f"?period1=1136073600&period2={p2}&interval=1d")
     res = _get(url).json()["chart"]["result"][0]
     ts = pd.to_datetime(res["timestamp"], unit="s").normalize()
     close = res["indicators"]["quote"][0]["close"]
@@ -219,7 +238,7 @@ def load_all() -> dict:
         "eur": lambda: _cached("yahoo_EURUSD", lambda: _yahoo("EURUSD=X", "USD_PER_EUR")),
         "gbp": lambda: _cached("yahoo_GBPUSD", lambda: _yahoo("GBPUSD=X", "USD_PER_GBP")),
         "move": lambda: _cached("yahoo_MOVE", lambda: _yahoo("^MOVE", "MOVE")),
-        "cpi": lambda: _cached("bls_core_cpi", lambda: _dbnomics("BLS/cu/CUSR0000SA0L1E", "US_CORE_CPI")),
+        "real": lambda: _cached("ust_real_curve", _treasury_real),
     }
     for k in C.IMF_INDICATORS:
         jobs[f"imf_{k}"] = (lambda k=k: imf(k, iso_all))
@@ -233,10 +252,12 @@ def load_all() -> dict:
         allc = C.COUNTRIES + C.FACTOR_EXTRA
         y10 = pd.DataFrame({c: oecd[f"IRLT_{C.ISO3[c]}"] for c in allc if f"IRLT_{C.ISO3[c]}" in oecd})
         s3m = pd.DataFrame({c: oecd[f"IR3TIB_{C.ISO3[c]}"] for c in allc if f"IR3TIB_{C.ISO3[c]}" in oecd})
-    daily_parts = [res[k] for k in ("ust", "acm", "boe", "bbk", "mof", "dxy", "jpy", "eur", "gbp", "cpi")
+    daily_parts = [res[k] for k in ("ust", "real", "acm", "boe", "bbk", "mof", "dxy", "jpy", "eur", "gbp")
                    if res[k] is not None]
     daily = pd.concat(daily_parts, axis=1).sort_index() if daily_parts else pd.DataFrame()
     daily = daily.apply(pd.to_numeric, errors="coerce")
+    if {"US10Y", "US10Y_REAL"} <= set(daily.columns):
+        daily["US_BE10"] = daily["US10Y"] - daily["US10Y_REAL"]
     imf_data = {k: res[f"imf_{k}"] for k in C.IMF_INDICATORS}
     move = _series(res["move"])
     return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_data, "move": move}
@@ -267,7 +288,7 @@ def mock_all(seed: int = 1) -> dict:
         "DE10Y": 2 + np.cumsum(rng.normal(0, 0.04, len(d))) * 0.3,
         "JP10Y": 0.5 + np.cumsum(rng.normal(0, 0.02, len(d))) * 0.3,
         "JP30Y": 1.5 + np.cumsum(rng.normal(0, 0.02, len(d))) * 0.3,
-        "US_CORE_CPI": 200 * np.exp(np.cumsum(np.full(len(d), 0.025 / 260))),
+        "US_BE10": 2.2 + np.cumsum(rng.normal(0, 0.01, len(d))) * 0.3,
     }, index=d)
     years = range(1990, 2032)
     iso_all = sorted(set(C.PANEL_ISO3) | {C.ISO3[c] for c in C.COUNTRIES})

@@ -1,3 +1,5 @@
-ecb_b.csv              404   0.9s len=443 :: b'{"type":"/service/data/FM/B..EUR.4F.BB..YLD","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"1.0\\" en'
-ecb_m.csv              200   1.1s len=1186 :: b'KEY,FREQ,REF_AREA,CURRENCY,PROVIDER_FM,INSTRUMENT_FM,PROVIDER_FM_ID,DATA_TYPE_FM,TIME_PERIOD,OBS_VALUE\r\nFM.M.U2.EUR.4F.BB.U2_10Y.YLD,M,U2,EUR,4F,BB,U2'
-ecb_b_any.csv          404   2.3s len=511 :: b'{"type":"/service/data/FM/B.FR+IT+DE.....","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"1.0\\" enco'
+stooq_fr.csv           200   0.6s len=796 :: b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t'
+stooq_it.csv           200   0.6s len=796 :: b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t'
+stooq_de.csv           200   0.6s len=796 :: b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t'
+cnbc_quote.json        200   0.2s len=3291 :: b'{"FormattedQuoteResult":{"FormattedQuote":[{"symbol":"FR10Y-FR","symbolType":"symbol","code":0,"name":"France 10 Year Bond","shortName":"FRA 10-YR","o'
+cnbc_hist_it.json      200   0.5s len=72913 :: b'{"barData":{"priceBars":[{"open":"1.3830","high":"1.4270","low":"1.3650","close":"1.3810","volume":0,"tradeTime":"20161009000000","tradeTimeinMills":1'

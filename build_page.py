@@ -53,6 +53,30 @@ def table_html(df: pd.DataFrame, fmt: dict | None = None) -> str:
     return '<div class="tbl">' + d.to_html(escape=True, na_rep="", border=0) + "</div>"
 
 
+SHADE = {0: "#e8f5e9", 1: "#fff3cd", 2: "#f8d7da"}
+
+
+def styled_table(df: pd.DataFrame, fmt: dict | None = None, rules: dict | None = None) -> str:
+    """Table with per-cell background colours. rules: column -> function(value) -> 0/1/2 (green/amber/red)
+    or None for no colour."""
+    fmt, rules = fmt or {}, rules or {}
+    hdr = "<th></th>" + "".join(f"<th>{html.escape(str(c))}</th>" for c in df.columns)
+    rows = ""
+    for idx, r in df.iterrows():
+        cells = ""
+        for c in df.columns:
+            v = r[c]
+            txt = "" if (not isinstance(v, str) and pd.isna(v)) else (fmt[c].format(v) if c in fmt else str(v))
+            lv = None
+            if c in rules and not (not isinstance(v, str) and pd.isna(v)):
+                lv = rules[c](v)
+            style = f' style="background:{SHADE[lv]}"' if lv is not None else ""
+            align = "" if not isinstance(v, str) else ' class="txt"'
+            cells += f"<td{style}{align}>{html.escape(txt)}</td>"
+        rows += f"<tr><th>{html.escape(str(idx))}</th>{cells}</tr>"
+    return f'<div class="tbl"><table><tr>{hdr}</tr>{rows}</table></div>'
+
+
 def section(title: str, body: str, note: str = "", details: str = "") -> None:
     n = f'<p class="explain">{note}</p>' if note else ""
     d = f'<p class="note details">{details}</p>' if details else ""
@@ -509,7 +533,36 @@ def s_politics(pol):
     fmt = {"Revealed: Δ structural PB, past 3y (pp)": "{:+.1f}", "Stated: IMF-projected Δ, next 5y (pp)": "{:+.1f}",
            "Adjustment needed at market r (pp)": "{:.1f}", "Plan covers need": "{:.0%}", "willingness": "{:.1f}",
            "political_constraint_1to5": "{:.1f}"}
-    section("Political calendar and capacity", table_html(pol, fmt),
+    W = C.WARN
+
+    def score(v):            # 1–5 scores, 5 = most constrained
+        return 2 if v >= W["politics"][1] else 1 if v >= W["politics"][0] else 0
+
+    def change(v):           # structural primary balance change, pp
+        return 0 if v >= 1 else 1 if v >= 0 else 2
+
+    def cover(v):
+        return 0 if v >= 0.75 else 1 if v >= 0.5 else 2
+
+    rules = {"political_constraint_1to5": score, "willingness": score, "track_record": score, "ability": score,
+             "anchors": score, "Revealed: Δ structural PB, past 3y (pp)": change,
+             "Stated: IMF-projected Δ, next 5y (pp)": change, "Plan covers need": cover,
+             "majority_in_12m": lambda v: {"High": 0, "Medium": 1, "Low": 2}.get(v)}
+    ren = {"political_constraint_1to5": "Political constraint", "willingness": "Willingness",
+           "track_record": "Track record", "ability": "Ability", "anchors": "Anchors",
+           "Revealed: Δ structural PB, past 3y (pp)": "Revealed effort, past 3y (pp)",
+           "Stated: IMF-projected Δ, next 5y (pp)": "Planned effort, next 5y (pp)",
+           "Adjustment needed at market r (pp)": "Needed at market r (pp)", "Plan covers need": "Plan covers need",
+           "external_anchor": "External anchor", "next_binding_election": "Next election",
+           "next_trigger": "Next trigger", "trigger_date": "Trigger date", "majority_in_12m": "Majority in 12m"}
+    order = ["Political constraint", "Willingness", "Track record", "Ability", "Anchors",
+             "Revealed effort, past 3y (pp)", "Planned effort, next 5y (pp)", "Needed at market r (pp)",
+             "Plan covers need", "Majority in 12m", "Next election", "Next trigger", "Trigger date", "External anchor"]
+    pol = pol.rename(columns=ren)
+    pol = pol[[c for c in order if c in pol.columns]]
+    rules = {ren.get(k, k): v for k, v in rules.items()}
+    fmt = {ren.get(k, k): v for k, v in fmt.items()}
+    section("Political calendar and capacity", styled_table(pol, fmt, rules),
             "Political constraint, 1–5 with 5 = most constrained, is a weighted average of four scores. "
             "Willingness is measured from data: revealed effort (change in the IMF structural primary balance "
             "over the past three years), stated effort (IMF-projected change over the next five, which builds "
@@ -537,7 +590,7 @@ h2{margin:0 0 8px;font-size:18px;color:var(--accent)}h3{font-size:15px}.note{col
 .tbl{overflow-x:auto}table{border-collapse:collapse;font-size:13px;margin:8px 0}
 th,td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:right}th{background:#f3f5f8}
 tr th:first-child{text-align:left}.err{background:#fff3f3;padding:8px;font-size:11px;overflow-x:auto}
-.explain{margin:4px 0 10px}.details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.explain{margin:4px 0 10px}td.txt{text-align:left;font-size:12.5px}.details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 .warn{background:#fff8e1;border:1px solid #f0d58a;padding:8px 12px;border-radius:4px}
 """
 

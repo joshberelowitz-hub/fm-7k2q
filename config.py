@@ -38,11 +38,6 @@ LTCMA_R = {}
 # Approximate average debt maturity (years): how fast effective r converges to market r
 AVG_MATURITY = {"US": 6, "DE": 7, "FR": 8, "IT": 7, "JP": 9, "UK": 14}
 
-# Recession scenario: r response in bp per 1pp of output gap.
-# Negative = r falls in recession (safe haven); positive = spreads widen.
-R_BETA_TO_GAP_BP = {"US": -25, "DE": -25, "FR": 15, "IT": 40, "JP": -10, "UK": -10}
-RECESSION_GAP_PATH = (-0.02, -0.03, -0.015, -0.005, 0.0)
-SEMI_ELASTICITY = 0.5
 
 
 

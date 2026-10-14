@@ -321,27 +321,6 @@ def s_dynamics(data, ftab, base_year):
             "the gross burden, especially for Japan.")
 
 
-@safe("Cyclical sensitivity")
-def s_cyclical(ftab):
-    fig = go.Figure()
-    end = {}
-    for c in C.COUNTRIES:
-        r = ftab.loc[c]
-        sc = F.recession_scenario(r.debt, r.eff_r, r.fwd_g, r.primary_bal, 5, C.RECESSION_GAP_PATH,
-                                  C.SEMI_ELASTICITY, C.R_BETA_TO_GAP_BP.get(c, 0))
-        end[c] = sc["difference"].iloc[-1] * 100
-        fig.add_scatter(y=sc["difference"] * 100, name=c, line=dict(color=COLORS[c]))
-    fig.update_layout(title="Extra debt vs baseline in a standard recession (pp of GDP)",
-                      xaxis_title="Years", yaxis_title="pp GDP")
-    tbl = pd.DataFrame({"r beta (bp per pp gap)": C.R_BETA_TO_GAP_BP, "Extra debt after 5y (pp)": end})
-    section("Cyclical sensitivity", fig_html(fig) + table_html(tbl, {"Extra debt after 5y (pp)": "{:.1f}"}),
-            "Extra debt from a standard recession versus baseline. The key asymmetry: safe havens get lower "
-            "interest rates in a recession, spread countries get higher ones, so the same downturn costs them more.",
-            "Output gap path " + ", ".join(f"{g:.1%}" for g in C.RECESSION_GAP_PATH)
-            + f"; budget semi-elasticity {C.SEMI_ELASTICITY}; interest-rate response per pp of output gap as "
-            "shown (edit in config.py).")
-
-
 @safe("Term premium (ACM)")
 def s_tp(data, tp, acm_res):
     tpm = tp.loc["1998":]
@@ -575,8 +554,6 @@ def main():
     s_health()
     if ftab is not None:
         s_dynamics(data, ftab, base_year)
-    if ftab is not None:
-        s_cyclical(ftab)
     if tp is not None:
         s_tp(data, tp, acm_res)
     prob, sprob = ({}, {})

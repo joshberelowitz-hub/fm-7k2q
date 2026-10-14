@@ -314,17 +314,28 @@ def s_priced(data, acm_res, ftab):
             "2012–19 avg": "{:.0f}", "Peak": "{:.0f}", "30y TP now": "{:.0f}", "30y percentile": "{:.0%}"})
 
     y10 = data["y10"]
+    dly = data["daily"]
     fig2 = go.Figure()
     srows = {}
     for c in ("FR", "IT"):
         if c in y10 and "DE" in y10:
             sp = ((y10[c] - y10["DE"]) * 100).loc["2008":].dropna()
+            sp.index = sp.index + pd.offsets.MonthEnd(0)
+            asof = sp.index[-1]
+            if f"{c}10Y" in dly and "DE10Y_CNBC" in dly:
+                w = ((dly[f"{c}10Y"] - dly["DE10Y_CNBC"]) * 100).dropna()
+                if len(w):
+                    sp = pd.concat([sp.loc[:w.index[0] - pd.Timedelta(days=1)], w])
+                    asof = w.index[-1]
             fig2.add_scatter(x=sp.index, y=sp, name=f"{c}–DE", line=dict(color=COLORS[c]))
-            rank[c] = _pctile(sp)
-            srows[c] = {"10y spread to Bunds now (bp)": sp.iloc[-1], "Percentile since 2008": rank[c],
+            monthly = sp.resample("ME").last()
+            monthly.iloc[-1] = sp.iloc[-1]
+            rank[c] = _pctile(monthly)
+            srows[c] = {"10y spread to Bunds now (bp)": sp.iloc[-1], "As of": asof.strftime("%d %b %Y"),
+                        "Percentile since 2008": rank[c],
                         "2012–19 avg": sp.loc["2012":"2019"].mean(), "Peak": sp.max(),
                         "Peak date": sp.idxmax().strftime("%b %Y")}
-    fig2.update_layout(title="10y spread to Germany, bp (monthly)")
+    fig2.update_layout(title="10y spread to Germany, bp (monthly to 2016, weekly since, latest live)")
     body += "<h3>France and Italy: spreads to Bunds</h3>" + fig_html(fig2, 330)
     body += table_html(pd.DataFrame(srows).T, {"10y spread to Bunds now (bp)": "{:.0f}",
                                                "Percentile since 2008": "{:.0%}", "2012–19 avg": "{:.0f}",
@@ -333,7 +344,8 @@ def s_priced(data, acm_res, ftab):
             "Descriptive only. US, Germany, UK, Japan: today's ACM term premium (bp) against its own "
             "monthly history since 1998, with the rate backdrop alongside — pre-QE premia were earned at "
             "higher yield levels and inflation uncertainty, so 1998–07 is not a pure 'normal'. France and "
-            "Italy: 10y spread to Bunds since 2008. The heatmap's 'priced' column is the percentile.")
+            "Italy: 10y spread to Bunds since 2008 (OECD monthly averages to 2016, then CNBC weekly closes and "
+            "the latest quote at the time of the daily run). The heatmap's 'priced' column is the percentile.")
     return rank, {}
 
 

@@ -1,5 +1,0 @@
-stooq_fr.csv           200   0.6s len=796 :: b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t'
-stooq_it.csv           200   0.6s len=796 :: b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t'
-stooq_de.csv           200   0.6s len=796 :: b'<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head><body><noscript>This site requires JavaScript t'
-cnbc_quote.json        200   0.2s len=3291 :: b'{"FormattedQuoteResult":{"FormattedQuote":[{"symbol":"FR10Y-FR","symbolType":"symbol","code":0,"name":"France 10 Year Bond","shortName":"FRA 10-YR","o'
-cnbc_hist_it.json      200   0.5s len=72913 :: b'{"barData":{"priceBars":[{"open":"1.3830","high":"1.4270","low":"1.3650","close":"1.3810","volume":0,"tradeTime":"20161009000000","tradeTimeinMills":1'

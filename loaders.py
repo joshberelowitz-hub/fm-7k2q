@@ -222,6 +222,28 @@ def _dbnomics(code: str, name: str) -> pd.DataFrame:
     return df.set_index("date").dropna()
 
 
+# ---------------------------------------------------------------- CNBC (France/Italy 10y, live + weekly history)
+CNBC_SYMBOLS = {"FR10Y": "FR10Y-FR", "IT10Y": "IT10Y-IT", "DE10Y_CNBC": "DE10Y-DE"}
+
+
+def _cnbc() -> pd.DataFrame:
+    import json
+    cols = {}
+    for name, sym in CNBC_SYMBOLS.items():
+        bars = _get(f"https://ts-api.cnbc.com/harmony/app/charts/5Y.json?symbol={sym}").json()["barData"]["priceBars"]
+        s = pd.Series({pd.Timestamp(b["tradeTime"][:8]): float(b["close"]) for b in bars})
+        cols[name] = s
+    q = _get("https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols="
+             + "%7C".join(CNBC_SYMBOLS.values())
+             + "&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json").json()
+    for x in q["FormattedQuoteResult"]["FormattedQuote"]:
+        name = {v: k for k, v in CNBC_SYMBOLS.items()}[x["symbol"]]
+        t = pd.Timestamp(x["last_time"][:10])
+        cols[name][t] = float(str(x["last"]).rstrip("%"))
+    df = pd.DataFrame(cols).sort_index()
+    return df[~df.index.duplicated(keep="last")]
+
+
 # ---------------------------------------------------------------- zero curves for the ACM model
 def _gsw() -> pd.DataFrame:
     txt = _get("https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv").text
@@ -317,6 +339,7 @@ def load_all() -> dict:
         "gbp": lambda: _cached("yahoo_GBPUSD", lambda: _yahoo("GBPUSD=X", "USD_PER_GBP")),
         "move": lambda: _cached("yahoo_MOVE", lambda: _yahoo("^MOVE", "MOVE")),
         "real": lambda: _cached("ust_real_curve", _treasury_real),
+        "cnbc": lambda: _cached("cnbc_fr_it_10y", _cnbc),
     }
     for k in C.IMF_INDICATORS:
         jobs[f"imf_{k}"] = (lambda k=k: imf(k, iso_all))
@@ -330,7 +353,7 @@ def load_all() -> dict:
         allc = C.COUNTRIES + C.FACTOR_EXTRA
         y10 = pd.DataFrame({c: oecd[f"IRLT_{C.ISO3[c]}"] for c in allc if f"IRLT_{C.ISO3[c]}" in oecd})
         s3m = pd.DataFrame({c: oecd[f"IR3TIB_{C.ISO3[c]}"] for c in allc if f"IR3TIB_{C.ISO3[c]}" in oecd})
-    daily_parts = [res[k] for k in ("ust", "real", "acm", "boe", "bbk", "mof", "dxy", "jpy", "eur", "gbp")
+    daily_parts = [res[k] for k in ("ust", "real", "acm", "boe", "bbk", "mof", "dxy", "jpy", "eur", "gbp", "cnbc")
                    if res[k] is not None]
     daily = pd.concat(daily_parts, axis=1).sort_index() if daily_parts else pd.DataFrame()
     daily = daily.apply(pd.to_numeric, errors="coerce")

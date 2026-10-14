@@ -2,8 +2,9 @@ import requests, time, os
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
 os.makedirs("probe_samples", exist_ok=True)
 URLS = {
- "ecb_fm_bb_daily.csv": "https://data-api.ecb.europa.eu/service/data/FM/D.DE+FR+IT.EUR.4F.BB..YLD?format=csvdata&startPeriod=2026-09-25",
- "ecb_fm_bb_list.csv": "https://data-api.ecb.europa.eu/service/data/FM/D..EUR.4F.BB..YLD?format=csvdata&startPeriod=2026-10-08&detail=dataonly",
+ "ecb_b.csv": "https://data-api.ecb.europa.eu/service/data/FM/B..EUR.4F.BB..YLD?format=csvdata&startPeriod=2026-10-01&detail=dataonly",
+ "ecb_m.csv": "https://data-api.ecb.europa.eu/service/data/FM/M..EUR.4F.BB..YLD?format=csvdata&startPeriod=2026-07&detail=dataonly",
+ "ecb_b_any.csv": "https://data-api.ecb.europa.eu/service/data/FM/B.FR+IT+DE.....?format=csvdata&startPeriod=2026-10-08&detail=dataonly",
 }
 for k, u in URLS.items():
     t = time.time()

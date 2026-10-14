@@ -243,8 +243,7 @@ def s_tp(data, tp, acm_res):
             col = f"{c}_tp{mat}"
             if m is not None and col in m:
                 s = m[col].loc["1998":] * 100
-                fig.add_scatter(x=s.index, y=s, name=c + (" (unreliable)" if c == "JP" else ""),
-                                line=dict(color=COLORS[c], dash="dot" if c == "JP" else "solid"))
+                fig.add_scatter(x=s.index, y=s, name=c, line=dict(color=COLORS[c]))
         if mat == 120 and "US_TP_ACM" in data["daily"]:
             ny = data["daily"]["US_TP_ACM"].dropna().resample("ME").last().loc["1998":] * 100
             fig.add_scatter(x=ny.index, y=ny, name="US — NY Fed ACM (check)",
@@ -263,10 +262,6 @@ def s_tp(data, tp, acm_res):
         body += "<h3>Latest (daily curve)</h3>" + table_html(show, {
             "10y yield": "{:.2f}", "10y risk-free": "{:.2f}", "10y TP (bp)": "{:.0f}",
             "30y yield": "{:.2f}", "30y TP (bp)": "{:.0f}", "30y/10y TP": "{:.1f}"})
-    if acm_res is not None and len(acm_res["jp_range"]):
-        body += ("<h3>Japan: sample sensitivity</h3>" + table_html(acm_res["jp_range"] * pd.Series(
-            {"10y TP": 100, "30y TP": 100, "10y risk-free": 1}), {"10y TP": "{:.0f}bp", "30y TP": "{:.0f}bp",
-                                                                  "10y risk-free": "{:.2f}%"}))
     if acm_res and acm_res["notes"]:
         body += "<p class='warn'>" + html.escape("; ".join(acm_res["notes"])) + "</p>"
 
@@ -289,9 +284,10 @@ def s_tp(data, tp, acm_res):
             "observed yield minus model risk-free yield. Validation vs Bloomberg Economics' published 10y "
             "estimates for 28 Jan 2026 (US 81bp, UK 123bp, DE 112bp): this model's Jan-26 month-end is "
             "US ~54bp, UK ~138bp, DE ~115bp; the US gap reflects a different short rate and curve source "
-            "(correlation with the NY Fed series 0.996). France: no free zero curve — see spreads. "
-            "Japan: not covered by Bloomberg; the estimate swings by >2pp with the sample start after two "
-            "decades at the zero bound, so treat it as unreliable. Idiosyncratic premium = residual from "
+            "(correlation with the NY Fed series 0.996). Japan (MoF par curve bootstrapped to zeros, sample "
+            "from 1992): Aug-26 month-end ~220bp vs Bloomberg Intelligence BIFITPJP 238bp (Daiwa's model: "
+            "184bp). Samples starting after 1999 are dominated by the zero bound and should not be used. "
+            "France: no free zero curve — see spreads. Idiosyncratic premium = residual from "
             "regressing each country on the leave-one-out common factor of " + ", ".join(univ) + ".")
     return resid
 
@@ -333,7 +329,7 @@ def s_priced(data, resid, ftab):
         stressed = float(np.nanpercentile(resid.abs().values, 95))
     latest = resid.iloc[-1]
     prob = {c: float(F.implied_stress_probability(latest[c], 0, stressed))
-            for c in C.COUNTRIES if c in latest and c in C.FACTOR_UNIVERSE}
+            for c in C.COUNTRIES if c in latest and c in C.TP_PRICED}
     fig = go.Figure(go.Bar(x=list(prob), y=[v * 100 for v in prob.values()],
                            marker_color=[COLORS[c] for c in prob]))
     fig.update_layout(title=f"Idiosyncratic premium as % of the way to a past stress episode "
@@ -362,7 +358,7 @@ def s_priced(data, resid, ftab):
     lo, hi = C.DEBT_ELASTICITY_BAND
     rows = {}
     for c in C.COUNTRIES:
-        if c not in latest or c not in C.FACTOR_UNIVERSE:
+        if c not in latest or c not in C.TP_PRICED:
             continue
         p = latest[c]
         rows[c] = {"Idiosyncratic premium (bp)": p,

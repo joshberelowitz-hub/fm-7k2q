@@ -3,8 +3,9 @@ tp_model.py — builds zero curves and runs the ACM term premium model per count
 following the Bloomberg Economics implementation (K=5 factors, 3m–30y, observed-yield TP).
 
 Estimation samples follow Bloomberg: US from Jun-1961, Germany from Jan-1998, UK from Jan-1996.
-Japan is not covered by Bloomberg; it is shown for two samples because the estimate is
-highly sample-dependent after two decades at the zero bound.
+Japan: sample from Jan-1992. Estimates starting 1990–1995 give 220–234bp for Aug-2026 and track
+Bloomberg Intelligence's published series (BIFITPJP, 238bp); a sample starting after 1999 is dominated by
+the zero bound and wrongly attributes the recent rise in yields to expected short rates.
 """
 from __future__ import annotations
 
@@ -14,8 +15,7 @@ from scipy.interpolate import PchipInterpolator
 
 from acm import ACM, svensson, to_monthly_grid
 
-SAMPLES = {"US": "1961-06", "DE": "1998-01", "UK": "1996-01", "JP": "1999-10"}
-JP_ALT_SAMPLE = "1992-01"
+SAMPLES = {"US": "1961-06", "DE": "1998-01", "UK": "1996-01", "JP": "1992-01"}
 GRID = np.arange(1, 361)
 
 
@@ -129,12 +129,6 @@ def run_all(curves: dict, oecd_rates: pd.DataFrame | None) -> dict:
                          "tp10": dd["tp120"], "y30": dd["y360"], "rf30": dd["rf360"], "tp30": dd["tp360"],
                          "fit_err_bp": float((dm["y120"] - dm["fit120"]).abs().mean() * 100),
                          "sample_start": SAMPLES[c]}
-            if c == "JP":
-                for s in (JP_ALT_SAMPLE, SAMPLES["JP"]):
-                    m2 = ACM(k=5).fit(Ym.loc[s:].dropna())
-                    d2 = m2.decompose(src.dropna()).iloc[-1]
-                    jp_range[f"sample from {s}"] = {"10y TP": d2["tp120"], "30y TP": d2["tp360"],
-                                                    "10y risk-free": d2["rf120"]}
         except Exception as e:  # noqa: BLE001
             notes.append(f"{c}: {type(e).__name__}: {e}")
     return {"monthly": pd.DataFrame(monthly), "latest": pd.DataFrame(latest).T,

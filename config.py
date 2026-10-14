@@ -11,7 +11,8 @@ FACTOR_EXTRA = ["AU", "CA", "SE", "CH"]
 
 # Countries used to build the global factor (FR/IT left out deliberately: their
 # own stress would leak into everyone else's "global" factor)
-FACTOR_UNIVERSE = ["US", "DE", "UK"]   # ACM term premia; Japan excluded (unreliable)
+FACTOR_UNIVERSE = ["US", "DE", "UK"]   # countries that build the common term premium factor
+TP_PRICED = ["US", "DE", "UK", "JP"]     # countries assessed on the ACM term premium lenses
 
 ISO3 = {"US": "USA", "DE": "DEU", "FR": "FRA", "IT": "ITA", "JP": "JPN", "UK": "GBR",
         "AU": "AUS", "CA": "CAN", "SE": "SWE", "CH": "CHE"}

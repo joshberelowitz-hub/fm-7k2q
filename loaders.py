@@ -123,37 +123,57 @@ def _oecd() -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------- daily sources
-def _treasury() -> pd.DataFrame:
-    parts = []
+def _get_retry(url: str, tries: int = 4) -> requests.Response:
+    for k in range(tries):
+        try:
+            return _get(url)
+        except Exception:  # noqa: BLE001
+            if k == tries - 1:
+                raise
+            time.sleep(2 * (k + 1))
+
+
+def _treasury_years(curve_type: str, cols: dict, cache_name: str) -> pd.DataFrame:
+    """Fetch the Treasury CSV year by year with retries; any year that still fails is taken from the
+    previous cached copy rather than silently dropped."""
+    parts, missing = [], []
     for y in range(2006, dt.date.today().year + 1):
         url = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
-               f"daily-treasury-rates.csv/{y}/all?type=daily_treasury_yield_curve"
+               f"daily-treasury-rates.csv/{y}/all?type={curve_type}"
                f"&field_tdr_date_value={y}&page&_format=csv")
         try:
-            p = pd.read_csv(io.StringIO(_get(url).text))
-            parts.append(p[["Date", "10 Yr", "30 Yr"]])
+            p = pd.read_csv(io.StringIO(_get_retry(url).text))
+            src = {}
+            for c in p.columns:
+                k = c.strip().upper()
+                if k in cols and cols[k] not in src.values():
+                    src[c] = cols[k]
+            p = p[["Date"] + list(src)].rename(columns=src)
+            p["Date"] = pd.to_datetime(p["Date"])
+            parts.append(p.set_index("Date"))
         except Exception:  # noqa: BLE001
-            continue
-    df = pd.concat(parts)
-    df["Date"] = pd.to_datetime(df["Date"])
-    return df.set_index("Date").sort_index().rename(columns={"10 Yr": "US10Y", "30 Yr": "US30Y"})
+            missing.append(y)
+    df = pd.concat(parts).sort_index() if parts else pd.DataFrame()
+    if missing:
+        path = os.path.join(CACHE, f"{cache_name}.csv")
+        still = missing
+        if os.path.exists(path):
+            old = pd.read_csv(path, index_col=0, parse_dates=True)
+            fill = old[old.index.year.isin(missing)]
+            df = pd.concat([df, fill]).sort_index()
+            still = sorted(set(missing) - set(fill.index.year))
+        if still:
+            print(f"  WARN {cache_name}: years missing after retries: {still}", flush=True)
+    return df[~df.index.duplicated(keep="last")]
+
+
+def _treasury() -> pd.DataFrame:
+    return _treasury_years("daily_treasury_yield_curve", {"10 YR": "US10Y", "30 YR": "US30Y"}, "ust_curve")
 
 
 def _treasury_real() -> pd.DataFrame:
-    parts = []
-    for y in range(2006, dt.date.today().year + 1):
-        url = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
-               f"daily-treasury-rates.csv/{y}/all?type=daily_treasury_real_yield_curve"
-               f"&field_tdr_date_value={y}&page&_format=csv")
-        try:
-            p = pd.read_csv(io.StringIO(_get(url).text))
-            col = [c for c in p.columns if c.strip().upper() in ("10 YR", "10 YEAR")][0]
-            parts.append(p[["Date", col]].rename(columns={col: "US10Y_REAL"}))
-        except Exception:  # noqa: BLE001
-            continue
-    df = pd.concat(parts)
-    df["Date"] = pd.to_datetime(df["Date"])
-    return df.set_index("Date").sort_index()
+    return _treasury_years("daily_treasury_real_yield_curve", {"10 YR": "US10Y_REAL", "10 YEAR": "US10Y_REAL"},
+                           "ust_real_curve")
 
 
 def _acm() -> pd.DataFrame:

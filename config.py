@@ -23,25 +23,7 @@ PANEL_ISO3 = ["AUS", "AUT", "BEL", "CAN", "CHE", "DEU", "DNK", "ESP", "FIN", "FR
               "GRC", "IRL", "ISL", "ITA", "JPN", "KOR", "NLD", "NOR", "NZL", "PRT", "SWE",
               "USA", "ISR"]
 
-# FRED series (free CSV download, no API key)
-def fred_10y(c):  # OECD monthly long-term government bond yield, %
-    return f"IRLTLT01{OECD2[c]}M156N"
-
-def fred_3m(c):   # OECD monthly 3-month interbank rate, %
-    return f"IR3TIB01{OECD2[c]}M156N"
-
-FRED_DAILY = {
-    "US10Y": "DGS10",
-    "US30Y": "DGS30",
-    "US_TP_KW": "THREEFYTP10",      # Kim-Wright 10y term premium, %
-    "USD_BROAD": "DTWEXBGS",        # broad trade-weighted dollar
-    "JPY_PER_USD": "DEXJPUS",
-    "USD_PER_EUR": "DEXUSEU",
-    "USD_PER_GBP": "DEXUSUK",
-    "US_CORE_CPI": "CPILFESL",      # monthly, used for inflation driver
-}
-
-# IMF DataMapper indicators (% of GDP or % change)
+# IMF WEO indicators (api.imf.org) (% of GDP or % change)
 IMF_INDICATORS = {
     "debt": "GGXWDG_NGDP",
     "overall": "GGXCNL_NGDP",

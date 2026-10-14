@@ -1,11 +1,24 @@
 """
 loaders.py — pulls public data. Every source is cached to data/*.csv; if a download
 fails, the last cached copy is used and the failure is shown on the page.
+
+Sources (all reachable from GitHub's servers, tested Oct 2026):
+  IMF WEO .............. api.imf.org SDMX 3.0
+  OECD monthly rates ... sdmx.oecd.org (10y yields, 3m interbank)
+  US Treasury curve .... home.treasury.gov (daily)
+  ACM term premium ..... newyorkfed.org (daily)
+  UK 10y ............... Bank of England database (daily)
+  Germany 10y .......... Bundesbank (daily)
+  Japan curve .......... Ministry of Finance (daily)
+  FX, DXY, MOVE ........ Yahoo Finance chart API
+  US core CPI .......... DBnomics mirror of BLS
 """
 from __future__ import annotations
 
+import datetime as dt
 import io
 import os
+import time
 
 import numpy as np
 import pandas as pd
@@ -14,27 +27,33 @@ import requests
 import config as C
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-UA = {"User-Agent": "Mozilla/5.0 (fiscal-monitor; public data research)"}
-TIMEOUT = (10, 30)  # connect, read seconds
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
+TIMEOUT = (10, 60)
 HEALTH: list[tuple[str, str, str]] = []
 
 
+def _get(url: str) -> requests.Response:
+    r = requests.get(url, headers=UA, timeout=TIMEOUT)
+    r.raise_for_status()
+    return r
+
+
 def _cached(name: str, fetch, dated: bool = True) -> pd.DataFrame | None:
-    import time
     path = os.path.join(CACHE, f"{name}.csv")
     t0 = time.time()
     try:
         df = fetch()
-        print(f"  ok   {name} ({time.time() - t0:.1f}s)", flush=True)
         if df is None or len(df) == 0:
             raise ValueError("empty response")
+        print(f"  ok   {name} ({time.time() - t0:.1f}s, {len(df)} rows)", flush=True)
         os.makedirs(CACHE, exist_ok=True)
         df.to_csv(path)
         last = str(df.index.max())[:10] if dated else ""
         HEALTH.append((name, "fresh", last))
         return df
     except Exception as e:  # noqa: BLE001
-        print(f"  FAIL {name} ({time.time() - t0:.1f}s): {type(e).__name__}: {str(e)[:120]}", flush=True)
+        print(f"  FAIL {name} ({time.time() - t0:.1f}s): {type(e).__name__}: {str(e)[:150]}", flush=True)
         if os.path.exists(path):
             df = pd.read_csv(path, index_col=0, parse_dates=dated)
             last = str(df.index.max())[:10] if dated else ""
@@ -44,36 +63,46 @@ def _cached(name: str, fetch, dated: bool = True) -> pd.DataFrame | None:
         return None
 
 
-# ---------------------------------------------------------------- FRED
-def _fred(series_id: str) -> pd.DataFrame:
-    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
-    r = requests.get(url, timeout=TIMEOUT, headers=UA)
-    r.raise_for_status()
-    df = pd.read_csv(io.StringIO(r.text))
-    df.columns = ["date", series_id]
-    df["date"] = pd.to_datetime(df["date"])
-    df[series_id] = pd.to_numeric(df[series_id], errors="coerce")
-    return df.set_index("date").dropna()
+def _series(df: pd.DataFrame | None) -> pd.Series | None:
+    return None if df is None else df.iloc[:, 0].dropna()
 
 
-def fred(series_id: str) -> pd.Series | None:
-    df = _cached(f"fred_{series_id}", lambda: _fred(series_id))
-    return None if df is None else df.iloc[:, 0]
+# ---------------------------------------------------------------- IMF (SDMX 3.0)
+def _imf_parse(j: dict) -> pd.DataFrame:
+    d = j["data"]
+    st = d["structures"][0]
+    sdims = st["dimensions"]["series"]
+    times = [v.get("value", v.get("id")) for v in st["dimensions"]["observation"][0]["values"]]
+    ci = [x["id"] for x in sdims].index("COUNTRY")
+    rows = []
+    for key, s in d["dataSets"][0].get("series", {}).items():
+        idx = [int(i) for i in key.split(":")]
+        country = sdims[ci]["values"][idx[ci]]["id"]
+        for t, obs in s.get("observations", {}).items():
+            v = obs[0]
+            if v not in (None, "", "NaN"):
+                rows.append((country, int(times[int(t)]), float(v)))
+    return pd.DataFrame(rows, columns=["iso3", "year", "value"])
 
 
-# ---------------------------------------------------------------- IMF
 def _imf(indicator: str, iso3s: list[str]) -> pd.DataFrame:
-    url = ("https://www.imf.org/external/datamapper/api/v1/" + indicator + "/" + "/".join(iso3s))
-    r = requests.get(url, timeout=TIMEOUT, headers=UA)
-    r.raise_for_status()
-    vals = r.json().get("values", {}).get(indicator, {})
-    rows = [(c, int(y), v) for c, d in vals.items() for y, v in d.items() if v is not None]
-    df = pd.DataFrame(rows, columns=["iso3", "year", "value"])
-    return df
+    base = "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/"
+    try:
+        df = _imf_parse(_get(base + f"{'+'.join(iso3s)}.{indicator}.A").json())
+        if len(df):
+            return df
+    except Exception:  # noqa: BLE001
+        pass
+    parts = []
+    for i in iso3s:  # fallback: one country at a time
+        try:
+            parts.append(_imf_parse(_get(base + f"{i}.{indicator}.A").json()))
+        except Exception:  # noqa: BLE001
+            continue
+    return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame()
 
 
 def imf(key: str, iso3s: list[str]) -> pd.DataFrame | None:
-    """Returns a year x iso3 table (values as published, % units)."""
     ind = C.IMF_INDICATORS[key]
     df = _cached(f"imf_{ind}", lambda: _imf(ind, iso3s), dated=False)
     if df is None:
@@ -81,36 +110,136 @@ def imf(key: str, iso3s: list[str]) -> pd.DataFrame | None:
     return df.pivot_table(index="year", columns="iso3", values="value")
 
 
-# ---------------------------------------------------------------- Yahoo
-def _yahoo(ticker: str) -> pd.DataFrame:
-    import yfinance as yf
-    df = yf.download(ticker, period="max", progress=False, auto_adjust=False)
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    return df[["Close"]].rename(columns={"Close": ticker}).dropna()
+# ---------------------------------------------------------------- OECD monthly
+def _oecd() -> pd.DataFrame:
+    iso = "+".join(C.ISO3[c] for c in C.COUNTRIES + C.FACTOR_EXTRA)
+    url = ("https://sdmx.oecd.org/public/rest/data/OECD.SDD.STES,DSD_STES@DF_FINMARK,/"
+           f"{iso}.M.IRLT+IR3TIB.PA.....?startPeriod=1990-01&format=csvfile")
+    df = pd.read_csv(io.StringIO(_get(url).text))
+    df = df[["REF_AREA", "MEASURE", "TIME_PERIOD", "OBS_VALUE"]].dropna()
+    df["date"] = pd.to_datetime(df["TIME_PERIOD"])
+    df["col"] = df["MEASURE"] + "_" + df["REF_AREA"]
+    return df.pivot_table(index="date", columns="col", values="OBS_VALUE").sort_index()
 
 
-def yahoo(ticker: str) -> pd.Series | None:
-    df = _cached(f"yahoo_{ticker.replace('^', '')}", lambda: _yahoo(ticker))
-    return None if df is None else df.iloc[:, 0]
+# ---------------------------------------------------------------- daily sources
+def _treasury() -> pd.DataFrame:
+    parts = []
+    for y in range(2006, dt.date.today().year + 1):
+        url = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
+               f"daily-treasury-rates.csv/{y}/all?type=daily_treasury_yield_curve"
+               f"&field_tdr_date_value={y}&page&_format=csv")
+        try:
+            p = pd.read_csv(io.StringIO(_get(url).text))
+            parts.append(p[["Date", "10 Yr", "30 Yr"]])
+        except Exception:  # noqa: BLE001
+            continue
+    df = pd.concat(parts)
+    df["Date"] = pd.to_datetime(df["Date"])
+    return df.set_index("Date").sort_index().rename(columns={"10 Yr": "US10Y", "30 Yr": "US30Y"})
+
+
+def _acm() -> pd.DataFrame:
+    r = _get("https://www.newyorkfed.org/medialibrary/media/research/data_indicators/ACMTermPremium.xls")
+    xl = pd.read_excel(io.BytesIO(r.content), sheet_name=None)
+    for _, sh in xl.items():
+        cols = {str(c).strip().upper(): c for c in sh.columns}
+        if "ACMTP10" in cols:
+            dcol = cols.get("DATE", sh.columns[0])
+            out = sh[[dcol, cols["ACMTP10"]]].copy()
+            out.columns = ["date", "US_TP_ACM"]
+            out["date"] = pd.to_datetime(out["date"], errors="coerce", dayfirst=True)
+            return out.dropna().set_index("date").sort_index()
+    raise ValueError("ACMTP10 column not found")
+
+
+def _boe() -> pd.DataFrame:
+    url = ("https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes"
+           "&Datefrom=01/Jan/2006&Dateto=now&SeriesCodes=IUDMNPY&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N")
+    df = pd.read_csv(io.StringIO(_get(url).text))
+    df["DATE"] = pd.to_datetime(df["DATE"], format="%d %b %Y")
+    return df.set_index("DATE").rename(columns={"IUDMNPY": "UK10Y"})
+
+
+def _bbk() -> pd.DataFrame:
+    url = ("https://api.statistiken.bundesbank.de/rest/data/BBSIS/"
+           "D.I.ZAR.ZI.EUR.S1311.B.A604.R10XX.R.A.A._Z._Z.A?format=csv&startPeriod=2006-01-01")
+    rows = []
+    for line in _get(url).content.decode("utf-8-sig").splitlines():
+        p = line.split(";")
+        if len(p) >= 2 and len(p[0]) == 10 and p[0][4] == "-" and p[1] not in (".", ""):
+            rows.append((pd.Timestamp(p[0]), float(p[1].replace(",", "."))))
+    return pd.DataFrame(rows, columns=["date", "DE10Y"]).set_index("date")
+
+
+def _mof() -> pd.DataFrame:
+    base = "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/"
+    parts = []
+    for f in ("historical/jgbcme_all.csv", "jgbcme.csv"):
+        txt = _get(base + f).content.decode("utf-8", errors="ignore")
+        p = pd.read_csv(io.StringIO(txt), skiprows=1)
+        p = p[["Date", "10Y", "30Y"]]
+        p["Date"] = pd.to_datetime(p["Date"], format="%Y/%m/%d", errors="coerce")
+        parts.append(p.dropna(subset=["Date"]))
+    df = pd.concat(parts).drop_duplicates("Date", keep="last").set_index("Date").sort_index()
+    df = df.apply(pd.to_numeric, errors="coerce")
+    return df.loc["2006":].rename(columns={"10Y": "JP10Y", "30Y": "JP30Y"})
+
+
+def _yahoo(ticker: str, name: str) -> pd.DataFrame:
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=max&interval=1d"
+    res = _get(url).json()["chart"]["result"][0]
+    ts = pd.to_datetime(res["timestamp"], unit="s").normalize()
+    close = res["indicators"]["quote"][0]["close"]
+    df = pd.DataFrame({name: close}, index=ts).dropna()
+    return df[~df.index.duplicated(keep="last")]
+
+
+def _dbnomics(code: str, name: str) -> pd.DataFrame:
+    j = _get(f"https://api.db.nomics.world/v22/series/{code}?observations=1").json()
+    doc = j["series"]["docs"][0]
+    df = pd.DataFrame({"date": pd.to_datetime(doc["period_start_day"]), name: doc["value"]})
+    df[name] = pd.to_numeric(df[name], errors="coerce")
+    return df.set_index("date").dropna()
 
 
 # ---------------------------------------------------------------- all
 def load_all() -> dict:
     from concurrent.futures import ThreadPoolExecutor
-    allc = C.COUNTRIES + C.FACTOR_EXTRA
-    fred_ids = ([C.fred_10y(c) for c in allc] + [C.fred_3m(c) for c in allc]
-                + list(C.FRED_DAILY.values()))
     iso_all = sorted(set(C.PANEL_ISO3) | {C.ISO3[c] for c in C.COUNTRIES})
+    jobs = {
+        "oecd": lambda: _cached("oecd_rates", _oecd),
+        "ust": lambda: _cached("ust_curve", _treasury),
+        "acm": lambda: _cached("acm_tp", _acm),
+        "boe": lambda: _cached("boe_10y", _boe),
+        "bbk": lambda: _cached("bbk_10y", _bbk),
+        "mof": lambda: _cached("mof_jgb", _mof),
+        "dxy": lambda: _cached("yahoo_DXY", lambda: _yahoo("DX-Y.NYB", "USD_BROAD")),
+        "jpy": lambda: _cached("yahoo_JPY", lambda: _yahoo("JPY=X", "JPY_PER_USD")),
+        "eur": lambda: _cached("yahoo_EURUSD", lambda: _yahoo("EURUSD=X", "USD_PER_EUR")),
+        "gbp": lambda: _cached("yahoo_GBPUSD", lambda: _yahoo("GBPUSD=X", "USD_PER_GBP")),
+        "move": lambda: _cached("yahoo_MOVE", lambda: _yahoo("^MOVE", "MOVE")),
+        "cpi": lambda: _cached("bls_core_cpi", lambda: _dbnomics("BLS/cu/CUSR0000SA0L1E", "US_CORE_CPI")),
+    }
+    for k in C.IMF_INDICATORS:
+        jobs[f"imf_{k}"] = (lambda k=k: imf(k, iso_all))
     with ThreadPoolExecutor(max_workers=8) as ex:
-        fred_res = dict(zip(fred_ids, ex.map(fred, fred_ids)))
-        imf_keys = list(C.IMF_INDICATORS)
-        imf_res = dict(zip(imf_keys, ex.map(lambda k: imf(k, iso_all), imf_keys)))
-    move = yahoo("^MOVE")
-    y10 = pd.DataFrame({c: fred_res[C.fred_10y(c)] for c in allc if fred_res[C.fred_10y(c)] is not None})
-    s3m = pd.DataFrame({c: fred_res[C.fred_3m(c)] for c in allc if fred_res[C.fred_3m(c)] is not None})
-    daily = pd.DataFrame({k: fred_res[sid] for k, sid in C.FRED_DAILY.items() if fred_res[sid] is not None})
-    return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_res, "move": move}
+        futs = {k: ex.submit(f) for k, f in jobs.items()}
+        res = {k: f.result() for k, f in futs.items()}
+
+    oecd = res["oecd"]
+    y10 = s3m = pd.DataFrame()
+    if oecd is not None:
+        allc = C.COUNTRIES + C.FACTOR_EXTRA
+        y10 = pd.DataFrame({c: oecd[f"IRLT_{C.ISO3[c]}"] for c in allc if f"IRLT_{C.ISO3[c]}" in oecd})
+        s3m = pd.DataFrame({c: oecd[f"IR3TIB_{C.ISO3[c]}"] for c in allc if f"IR3TIB_{C.ISO3[c]}" in oecd})
+    daily_parts = [res[k] for k in ("ust", "acm", "boe", "bbk", "mof", "dxy", "jpy", "eur", "gbp", "cpi")
+                   if res[k] is not None]
+    daily = pd.concat(daily_parts, axis=1).sort_index() if daily_parts else pd.DataFrame()
+    daily = daily.apply(pd.to_numeric, errors="coerce")
+    imf_data = {k: res[f"imf_{k}"] for k in C.IMF_INDICATORS}
+    move = _series(res["move"])
+    return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_data, "move": move}
 
 
 # ---------------------------------------------------------------- mock (for testing)
@@ -129,11 +258,15 @@ def mock_all(seed: int = 1) -> dict:
     daily = pd.DataFrame({
         "US10Y": 3 + np.cumsum(rng.normal(0, 0.04, len(d))) * 0.3,
         "US30Y": 3.5 + np.cumsum(rng.normal(0, 0.04, len(d))) * 0.3,
-        "US_TP_KW": 0.5 + np.cumsum(rng.normal(0, 0.02, len(d))) * 0.3,
+        "US_TP_ACM": 0.5 + np.cumsum(rng.normal(0, 0.02, len(d))) * 0.3,
         "USD_BROAD": 110 + np.cumsum(rng.normal(0, 0.3, len(d))),
         "JPY_PER_USD": 120 + np.cumsum(rng.normal(0, 0.5, len(d))),
         "USD_PER_EUR": 1.15 + np.cumsum(rng.normal(0, 0.004, len(d))),
         "USD_PER_GBP": 1.35 + np.cumsum(rng.normal(0, 0.005, len(d))),
+        "UK10Y": 3 + np.cumsum(rng.normal(0, 0.04, len(d))) * 0.3,
+        "DE10Y": 2 + np.cumsum(rng.normal(0, 0.04, len(d))) * 0.3,
+        "JP10Y": 0.5 + np.cumsum(rng.normal(0, 0.02, len(d))) * 0.3,
+        "JP30Y": 1.5 + np.cumsum(rng.normal(0, 0.02, len(d))) * 0.3,
         "US_CORE_CPI": 200 * np.exp(np.cumsum(np.full(len(d), 0.025 / 260))),
     }, index=d)
     years = range(1990, 2032)

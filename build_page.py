@@ -104,8 +104,9 @@ def fiscal_table(data: dict, base_year: int) -> pd.DataFrame:
 
 
 def latest_10y(data: dict, c: str) -> float:
-    if c == "US" and "US10Y" in data["daily"]:
-        return float(data["daily"]["US10Y"].dropna().iloc[-1])
+    col = f"{c}10Y"
+    if col in data["daily"] and data["daily"][col].notna().any():
+        return float(data["daily"][col].dropna().iloc[-1])
     return float(data["y10"][c].dropna().iloc[-1])
 
 
@@ -293,9 +294,9 @@ def s_tp(data, tp):
     for c in C.COUNTRIES:
         if c in tpm:
             fig.add_scatter(x=tpm.index, y=tpm[c], name=c, line=dict(color=COLORS[c]))
-    if "US_TP_KW" in data["daily"]:
-        kw = data["daily"]["US_TP_KW"].resample("MS").mean().loc["2000":] * 100
-        fig.add_scatter(x=kw.index, y=kw, name="US Kim-Wright (check)",
+    if "US_TP_ACM" in data["daily"]:
+        kw = data["daily"]["US_TP_ACM"].dropna().resample("MS").mean().loc["2000":] * 100
+        fig.add_scatter(x=kw.index, y=kw, name="US ACM (check)",
                         line=dict(color=COLORS["US"], dash="dot"))
     fig.update_layout(title="10y term premium proxy, bp", yaxis_title="bp")
     body += fig_html(fig, 420)
@@ -315,7 +316,7 @@ def s_tp(data, tp):
                        {"Beta to global factor": "{:.2f}", "Latest idiosyncratic (bp)": "{:.0f}"})
     section("Term premium decomposition", body,
             "Proxy = 10y yield minus expected average 3m rate (AR(1) on 3m rates since 1999). Crude: "
-            "compare the US proxy with Kim-Wright. Euro members share one short rate, so their proxy "
+            "compare the US proxy with the NY Fed's ACM estimate. Euro members share one short rate, so their proxy "
             "differences are just yield spreads. Global factor = first principal component of "
             + ", ".join(univ) + " (leave-one-out). Monthly OECD data, ~1–2 months lag.")
     return resid
@@ -417,7 +418,7 @@ def s_triggers(data):
         corr = x["US10Y"].diff().rolling(60).corr(np.log(x["USD_BROAD"]).diff()).loc["2015":]
         fig = go.Figure(go.Scatter(x=corr.index, y=corr, name="US"))
         fig.add_hline(y=0, line_dash="dot")
-        fig.update_layout(title="US: 60-day correlation of 10y yield changes with broad dollar changes")
+        fig.update_layout(title="US: 60-day correlation of 10y yield changes with dollar index (DXY) changes")
         body += fig_html(fig, 320)
     m = pd.DataFrame(index=data["y10"].index)
     fx = d.resample("MS").mean()
@@ -483,8 +484,9 @@ def render(mock: bool) -> str:
 <title>Fiscal Sustainability Monitor</title><style>{CSS}</style></head><body>
 <header><h1>Fiscal Sustainability Monitor</h1><p>US · Germany · France · Italy · Japan · UK — updated {now}.
 Public data only.</p></header><nav>{nav}</nav><main>{warn}{body}
-<section><h2>Method notes</h2><p class="note">Sources: IMF World Economic Outlook (DataMapper), FRED
-(OECD monthly yields and 3m rates, US Treasury yields, Kim-Wright term premium, FX), Yahoo Finance (MOVE).
+<section><h2>Method notes</h2><p class="note">Sources: IMF World Economic Outlook (api.imf.org), OECD (monthly 10y yields
+and 3m rates), US Treasury, NY Fed (ACM term premium), Bank of England, Bundesbank, Japan MoF (daily curves),
+Yahoo Finance (FX, DXY, MOVE), BLS via DBnomics (core CPI).
 All modelling choices and calibrations are in config.py. This page is a research tool, not investment advice.</p></section>
 </main></body></html>"""
 

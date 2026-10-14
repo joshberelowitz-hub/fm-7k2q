@@ -216,7 +216,9 @@ def s_warnings(data, ftab, rank, pol, base_year):
            "Yield–FX corr (60d)": "{:+.2f}", "Days to trigger": "{:.0f}"}
     shade = {0: "#e8f5e9", 1: "#fff3cd", 2: "#f8d7da"}
     scol = {"WORRY": "#f5c6cb", "WATCH": "#ffe8a1", "SLOW BURN": "#fde2c8", "MARKET-LED": "#fde2c8", "OK": "#d4edda"}
-    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Status"])
+    maj = pol["majority_in_12m"].reindex(V.index) if "majority_in_12m" in pol else pd.Series(index=V.index, dtype=object)
+    mcol = {"High": "#e8f5e9", "Medium": "#fff3cd", "Low": "#f8d7da"}
+    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Majority in 12m", "Status"])
     rows = ""
     for c in V.index:
         cells = ""
@@ -225,6 +227,9 @@ def s_warnings(data, ftab, rank, pol, base_year):
             txt = "n/a" if pd.isna(v) else fmt[k].format(v)
             bg = shade.get(int(l_), "#fff") if pd.notna(l_) else "#f4f4f4"
             cells += f'<td style="background:{bg}">{txt}</td>'
+        mj = maj.get(c, "")
+        mj = "" if pd.isna(mj) else str(mj)
+        cells += f'<td style="background:{mcol.get(mj, "#fff")}">{html.escape(mj + (" (sweep)" if c == "US" and mj else ""))}</td>'
         s = status[c]
         cells += f'<td style="background:{scol.get(s.split(" —")[0], "#fff")};font-weight:bold">{s}</td>'
         rows += f"<tr><th>{c}</th>{cells}</tr>"
@@ -245,7 +250,10 @@ def s_warnings(data, ftab, rank, pol, base_year):
             "term premium (US/DE/UK/JP) or spread-to-Bund (FR/IT) percentile in own history; 60-day "
             "correlation of daily 10y yield and currency changes (negative = yields up with currency down, the "
             "fiscal-stress signature; not meaningful within the euro). Trigger: days to the next binding "
-            "election or budget deadline (manual/politics.csv). Status: WORRY = red fundamental AND red "
+            "election or budget deadline (manual/politics.csv). Majority in 12m: likelihood that a government "
+            "holds a working legislative majority a year from now (US: one party controls presidency and both "
+            "chambers) — shown for context, not used in the status, since a majority can enable either "
+            "consolidation or looser policy. Status: WORRY = red fundamental AND red "
             "market; WATCH = amber-or-worse on both; SLOW BURN = red fundamental only; MARKET-LED = red "
             "market only. Thresholds: " + th + ". All editable in config.py.")
 

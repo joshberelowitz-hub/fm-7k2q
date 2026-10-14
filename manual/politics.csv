@@ -1,7 +1,7 @@
-country,next_binding_election,political_constraint_1to5,external_anchor,next_trigger,trigger_date
-US,Midterms 3 Nov 2026,4,None binding (debt ceiling only),Midterm elections,2026-11-03
-DE,Federal election 2029,2,Reformed debt brake; EU rules,Federal election (approx.),2029-09-30
-FR,Presidential election Apr 2027,5,EU excessive deficit procedure; TPI conditionality,2027 budget must pass (then presidential election Apr 2027),2026-12-31
-IT,General election due by 2027,3,EU excessive deficit procedure; TPI conditionality,General election due (approx.),2027-09-30
-JP,Upper house Jul 2028 (lower house due by Feb 2030; LDP–JIP supermajority since Feb 2026 snap election),4,None binding,Upper house election (approx.),2028-07-31
-UK,General election by 2029,3,Domestic fiscal rules; OBR,General election due by (approx.),2029-08-15
+country,next_binding_election,political_constraint_1to5,external_anchor,next_trigger,trigger_date,majority_in_12m
+US,Midterms 3 Nov 2026,4,None binding (debt ceiling only),Midterm elections,2026-11-03,Low
+DE,Federal election 2029,2,Reformed debt brake; EU rules,Federal election (approx.),2029-09-30,High
+FR,Presidential election 18 Apr / 2 May 2027,5,EU excessive deficit procedure; TPI conditionality,2027 budget must pass (then presidential election Apr 2027),2026-12-31,Low
+IT,General election due by 22 Dec 2027,3,EU excessive deficit procedure; TPI conditionality,General election (due by),2027-12-22,Medium
+JP,Upper house Jul 2028 (lower house due by Feb 2030; LDP–JIP supermajority since Feb 2026 snap election),4,None binding,Upper house election (approx.),2028-07-31,High
+UK,General election by 2029,3,Domestic fiscal rules; OBR,General election due by (approx.),2029-08-15,High

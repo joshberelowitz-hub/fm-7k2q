@@ -11,7 +11,7 @@ FACTOR_EXTRA = ["AU", "CA", "SE", "CH"]
 
 # Countries used to build the global factor (FR/IT left out deliberately: their
 # own stress would leak into everyone else's "global" factor)
-FACTOR_UNIVERSE = ["US", "DE", "JP", "UK", "AU", "CA", "SE", "CH"]
+FACTOR_UNIVERSE = ["US", "DE", "UK"]   # ACM term premia; Japan excluded (unreliable)
 
 ISO3 = {"US": "USA", "DE": "DEU", "FR": "FRA", "IT": "ITA", "JP": "JPN", "UK": "GBR",
         "AU": "AUS", "CA": "CAN", "SE": "SWE", "CH": "CHE"}
@@ -51,7 +51,7 @@ SEMI_ELASTICITY = 0.5
 
 # Stress episodes (country, month) used to define the "stressed" level of the
 # idiosyncratic term premium. Probability = latest residual / average residual at these.
-STRESS_EPISODES = [("UK", "2022-09"), ("IT", "2011-11"), ("IT", "2018-10"), ("JP", "2025-05")]
+STRESS_EPISODES = [("UK", "2022-10"), ("US", "2023-10"), ("US", "2025-04")]
 
 # Spread-to-Bund calibrations (bp): benign and stressed reference levels
 SPREAD_CALIB = {

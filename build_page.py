@@ -19,6 +19,7 @@ import plotly.graph_objects as go
 import config as C
 import fiscal_core as F
 import loaders as L
+import tp_model as TM
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SITE = os.path.join(ROOT, "site")
@@ -287,39 +288,67 @@ def s_cyclical(ftab):
             "recession, spread countries get higher r. Edit betas in config.py.")
 
 
-@safe("Term premium decomposition")
-def s_tp(data, tp):
-    tpm = tp.loc["2000":]
+@safe("Term premium (ACM)")
+def s_tp(data, tp, acm_res):
+    tpm = tp.loc["1998":]
     body = ""
-    fig = go.Figure()
-    for c in C.COUNTRIES:
-        if c in tpm:
-            fig.add_scatter(x=tpm.index, y=tpm[c], name=c, line=dict(color=COLORS[c]))
-    if "US_TP_ACM" in data["daily"]:
-        kw = data["daily"]["US_TP_ACM"].dropna().resample("MS").mean().loc["2000":] * 100
-        fig.add_scatter(x=kw.index, y=kw, name="US ACM (check)",
-                        line=dict(color=COLORS["US"], dash="dot"))
-    fig.update_layout(title="10y term premium proxy, bp", yaxis_title="bp")
-    body += fig_html(fig, 420)
+    m = acm_res["monthly"] if acm_res else None
+    for mat, lab in ((120, "10y"), (360, "30y")):
+        fig = go.Figure()
+        for c in ["US", "DE", "UK", "JP"]:
+            col = f"{c}_tp{mat}"
+            if m is not None and col in m:
+                s = m[col].loc["1998":] * 100
+                fig.add_scatter(x=s.index, y=s, name=c + (" (unreliable)" if c == "JP" else ""),
+                                line=dict(color=COLORS[c], dash="dot" if c == "JP" else "solid"))
+        if mat == 120 and "US_TP_ACM" in data["daily"]:
+            ny = data["daily"]["US_TP_ACM"].dropna().resample("ME").last().loc["1998":] * 100
+            fig.add_scatter(x=ny.index, y=ny, name="US — NY Fed ACM (check)",
+                            line=dict(color=COLORS["US"], dash="dash", width=1))
+        fig.update_layout(title=f"{lab} term premium, ACM model, bp (month-end)", yaxis_title="bp")
+        body += fig_html(fig, 400)
+    if acm_res and len(acm_res["latest"]):
+        lt = acm_res["latest"].copy()
+        show = pd.DataFrame({
+            "As of": lt["date"].astype(str).str[:10],
+            "10y yield": lt["y10"].astype(float), "10y risk-free": lt["rf10"].astype(float),
+            "10y TP (bp)": lt["tp10"].astype(float) * 100,
+            "30y yield": lt["y30"].astype(float), "30y TP (bp)": lt["tp30"].astype(float) * 100,
+            "30y/10y TP": (lt["tp30"].astype(float) / lt["tp10"].astype(float)).where(lt["tp10"].astype(float).abs() > 0.2),
+            "Sample from": lt["sample_start"]})
+        body += "<h3>Latest (daily curve)</h3>" + table_html(show, {
+            "10y yield": "{:.2f}", "10y risk-free": "{:.2f}", "10y TP (bp)": "{:.0f}",
+            "30y yield": "{:.2f}", "30y TP (bp)": "{:.0f}", "30y/10y TP": "{:.1f}"})
+    if acm_res is not None and len(acm_res["jp_range"]):
+        body += ("<h3>Japan: sample sensitivity</h3>" + table_html(acm_res["jp_range"] * pd.Series(
+            {"10y TP": 100, "30y TP": 100, "10y risk-free": 1}), {"10y TP": "{:.0f}bp", "30y TP": "{:.0f}bp",
+                                                                  "10y risk-free": "{:.2f}%"}))
+    if acm_res and acm_res["notes"]:
+        body += "<p class='warn'>" + html.escape("; ".join(acm_res["notes"])) + "</p>"
 
     univ = [u for u in C.FACTOR_UNIVERSE if u in tpm]
     resid = F.idiosyncratic_premium(tpm.dropna(), factor_universe=univ)
     betas = pd.Series({c: F._ols(tpm.dropna()[c], F.global_factor(tpm.dropna()[[u for u in univ if u != c]])
-                                 .rename("g").to_frame())[0]["g"] for c in C.COUNTRIES if c in tpm})
+                                 .rename("g").to_frame())[0]["g"] for c in tpm.columns})
     fig2 = go.Figure()
-    for c in C.COUNTRIES:
-        if c in resid:
-            fig2.add_scatter(x=resid.index, y=resid[c], name=c, line=dict(color=COLORS[c]))
-    fig2.update_layout(title="Idiosyncratic term premium (residual vs global factor), bp")
-    body += fig_html(fig2, 420)
-    body += table_html(pd.DataFrame({"Beta to global factor": betas,
+    for c in resid.columns:
+        fig2.add_scatter(x=resid.index, y=resid[c], name=c, line=dict(color=COLORS.get(c, "#999")))
+    fig2.update_layout(title="Idiosyncratic 10y term premium (residual vs other countries' common factor), bp")
+    body += fig_html(fig2, 380)
+    body += table_html(pd.DataFrame({"Beta to common factor": betas,
                                      "Latest idiosyncratic (bp)": resid.iloc[-1].reindex(betas.index)}),
-                       {"Beta to global factor": "{:.2f}", "Latest idiosyncratic (bp)": "{:.0f}"})
-    section("Term premium decomposition", body,
-            "Proxy = 10y yield minus expected average 3m rate (AR(1) on 3m rates since 1999). Crude: "
-            "compare the US proxy with the NY Fed's ACM estimate. Euro members share one short rate, so their proxy "
-            "differences are just yield spreads. Global factor = first principal component of "
-            + ", ".join(univ) + " (leave-one-out). Monthly OECD data, ~1–2 months lag.")
+                       {"Beta to common factor": "{:.2f}", "Latest idiosyncratic (bp)": "{:.0f}"})
+    section("Term premium (ACM)", body,
+            "Adrian-Crump-Moench model as implemented by Bloomberg Economics: zero curves 1m–30y "
+            "(Fed GSW, Bundesbank, BoE, Japan MoF bootstrapped), 5 principal-component factors, VAR(1), "
+            "three-step regressions on month-end data, applied to the latest daily curve. Term premium = "
+            "observed yield minus model risk-free yield. Validation vs Bloomberg Economics' published 10y "
+            "estimates for 28 Jan 2026 (US 81bp, UK 123bp, DE 112bp): this model's Jan-26 month-end is "
+            "US ~54bp, UK ~138bp, DE ~115bp; the US gap reflects a different short rate and curve source "
+            "(correlation with the NY Fed series 0.996). France: no free zero curve — see spreads. "
+            "Japan: not covered by Bloomberg; the estimate swings by >2pp with the sample start after two "
+            "decades at the zero bound, so treat it as unreliable. Idiosyncratic premium = residual from "
+            "regressing each country on the leave-one-out common factor of " + ", ".join(univ) + ".")
     return resid
 
 
@@ -360,7 +389,7 @@ def s_priced(data, resid, ftab):
         stressed = float(np.nanpercentile(resid.abs().values, 95))
     latest = resid.iloc[-1]
     prob = {c: float(F.implied_stress_probability(latest[c], 0, stressed))
-            for c in C.COUNTRIES if c in latest}
+            for c in C.COUNTRIES if c in latest and c in C.FACTOR_UNIVERSE}
     fig = go.Figure(go.Bar(x=list(prob), y=[v * 100 for v in prob.values()],
                            marker_color=[COLORS[c] for c in prob]))
     fig.update_layout(title=f"Idiosyncratic premium as % of the way to a past stress episode "
@@ -389,7 +418,7 @@ def s_priced(data, resid, ftab):
     lo, hi = C.DEBT_ELASTICITY_BAND
     rows = {}
     for c in C.COUNTRIES:
-        if c not in latest:
+        if c not in latest or c not in C.FACTOR_UNIVERSE:
             continue
         p = latest[c]
         rows[c] = {"Idiosyncratic premium (bp)": p,
@@ -498,7 +527,15 @@ def main():
     pol = pd.read_csv(os.path.join(ROOT, "manual", "politics.csv")).set_index("country")
 
     ftab = safe("Fiscal table")(fiscal_table)(data, base_year)
-    tp = safe("Term premium proxies")(tp_proxies)(data)
+    acm_res = None
+    if "curves" in data:
+        acm_res = safe("ACM model")(TM.run_all)(data["curves"], data["y10"].attrs.get("oecd"))
+    if acm_res is not None and len(acm_res["monthly"]):
+        mm = acm_res["monthly"]
+        tp = pd.DataFrame({c: mm[f"{c}_tp120"] * 100 for c in ["US", "DE", "UK", "JP"] if f"{c}_tp120" in mm})
+        tp.index = tp.index.to_period("M").to_timestamp()
+    else:
+        tp = safe("Term premium proxies")(tp_proxies)(data)
     fat = safe("Fiscal fatigue")(fiscal_fatigue)(data, base_year, ftab) if ftab is not None else None
 
     # build sections in display order; heatmap inserted at top afterwards
@@ -509,7 +546,7 @@ def main():
         s_fatigue(fat)
     if ftab is not None:
         s_cyclical(ftab)
-    resid = s_tp(data, tp) if tp is not None else None
+    resid = s_tp(data, tp, acm_res) if tp is not None else None
     if tp is not None:
         s_global(data, tp)
     prob, sprob = ({}, {})

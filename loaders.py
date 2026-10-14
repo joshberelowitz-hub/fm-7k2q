@@ -222,6 +222,84 @@ def _dbnomics(code: str, name: str) -> pd.DataFrame:
     return df.set_index("date").dropna()
 
 
+# ---------------------------------------------------------------- zero curves for the ACM model
+def _gsw() -> pd.DataFrame:
+    txt = _get("https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv").text
+    lines = txt.splitlines()
+    start = next(i for i, l in enumerate(lines) if l.startswith("Date,"))
+    df = pd.read_csv(io.StringIO("\n".join(lines[start:])), index_col=0, parse_dates=True)
+    return df[["BETA0", "BETA1", "BETA2", "BETA3", "TAU1", "TAU2"]].dropna()
+
+
+def _bbk_zero(freq: str, start: str) -> pd.DataFrame:
+    url = ("https://api.statistiken.bundesbank.de/rest/data/BBSIS/"
+           f"{freq}.I.ZST.ZI.EUR.S1311.B.A604..R.A.A._Z._Z.A?format=csv&startPeriod={start}")
+    lines = _get(url).content.decode("utf-8-sig").splitlines()
+    codes = [h.split(".")[9] for h in lines[0].split(";")[1::2]]
+    mats = [6 if c == "R005X" else int(c[1:3]) * 12 for c in codes]
+    rows, idx = [], []
+    for line in lines:
+        p = line.split(";")
+        if p and len(p[0]) in (7, 10) and p[0][4] == "-":
+            idx.append(pd.Timestamp(p[0]))
+            rows.append([np.nan if v in (".", "") else float(v.replace(",", ".")) for v in p[1::2]])
+    return pd.DataFrame(rows, index=idx, columns=mats)
+
+
+def _boe_zip(url: str, want: str) -> pd.DataFrame:
+    import zipfile
+    z = zipfile.ZipFile(io.BytesIO(_get(url).content))
+    parts = []
+    for f in z.namelist():
+        if want not in f:
+            continue
+        for sh in ("4. spot curve", "3. spot, short end"):
+            df = pd.read_excel(z.open(f), sheet_name=sh, header=None)
+            mats = [round(float(x) * 12) for x in df.iloc[3, 1:]]
+            d = df.iloc[5:].copy()
+            d = d[pd.to_datetime(d[0], errors="coerce").notna()]
+            parts.append(pd.DataFrame(d.iloc[:, 1:].astype(float).values,
+                                      index=pd.to_datetime(d[0]), columns=mats))
+    out = pd.concat(parts, axis=1)
+    out = out.T.groupby(level=0).first().T          # merge duplicate maturities (short end vs curve)
+    return out.sort_index()[sorted(out.columns)]
+
+
+def _mof_full() -> pd.DataFrame:
+    base = "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/"
+    parts = []
+    for f in ("historical/jgbcme_all.csv", "jgbcme.csv"):
+        txt = _get(base + f).content.decode("utf-8", errors="ignore")
+        p = pd.read_csv(io.StringIO(txt), skiprows=1, na_values=["-"])
+        p["Date"] = pd.to_datetime(p["Date"], format="%Y/%m/%d", errors="coerce")
+        parts.append(p.dropna(subset=["Date"]))
+    df = pd.concat(parts).drop_duplicates("Date", keep="last").set_index("Date").sort_index()
+    return df.apply(pd.to_numeric, errors="coerce").loc["1986":]
+
+
+def _ecb_euribor1m() -> pd.DataFrame:
+    url = "https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.RT.MM.EURIBOR1MD_.HSTA?format=csvdata"
+    df = pd.read_csv(io.StringIO(_get(url).text))
+    return pd.DataFrame({"EURIBOR1M": df["OBS_VALUE"].values}, index=pd.to_datetime(df["TIME_PERIOD"]))
+
+
+def load_curves() -> dict:
+    from concurrent.futures import ThreadPoolExecutor
+    boe = "https://www.bankofengland.co.uk/-/media/boe/files/statistics/yield-curves/"
+    jobs = {
+        "gsw": lambda: _cached("curve_us_gsw", _gsw),
+        "de_m": lambda: _cached("curve_de_monthly", lambda: _bbk_zero("M", "1997-01")),
+        "de_d": lambda: _cached("curve_de_daily", lambda: _bbk_zero("D", (dt.date.today() - dt.timedelta(days=45)).isoformat())),
+        "uk_m": lambda: _cached("curve_uk_monthly", lambda: _boe_zip(boe + "glcnominalmonthedata.zip", "Nominal")),
+        "uk_d": lambda: _cached("curve_uk_daily", lambda: _boe_zip(boe + "latest-yield-curve-data.zip", "GLC Nominal daily")),
+        "jp": lambda: _cached("curve_jp_mof", _mof_full),
+        "euribor": lambda: _cached("euribor1m", _ecb_euribor1m),
+    }
+    with ThreadPoolExecutor(max_workers=7) as ex:
+        futs = {k: ex.submit(f) for k, f in jobs.items()}
+        return {k: f.result() for k, f in futs.items()}
+
+
 # ---------------------------------------------------------------- all
 def load_all() -> dict:
     from concurrent.futures import ThreadPoolExecutor
@@ -260,7 +338,10 @@ def load_all() -> dict:
         daily["US_BE10"] = daily["US10Y"] - daily["US10Y_REAL"]
     imf_data = {k: res[f"imf_{k}"] for k in C.IMF_INDICATORS}
     move = _series(res["move"])
-    return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_data, "move": move}
+    curves = load_curves()
+    if oecd is not None:
+        y10.attrs["oecd"] = oecd
+    return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_data, "move": move, "curves": curves}
 
 
 # ---------------------------------------------------------------- mock (for testing)

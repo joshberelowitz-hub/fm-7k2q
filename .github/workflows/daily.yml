@@ -17,13 +17,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - run: python build_page.py 2>&1 | tee build_log.txt
+      - run: timeout 900 python -u build_page.py 2>&1 | tee build_log.txt
       - name: Save data cache
         run: |
           git config user.name "github-actions"

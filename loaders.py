@@ -15,13 +15,17 @@ import config as C
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 UA = {"User-Agent": "Mozilla/5.0 (fiscal-monitor; public data research)"}
+TIMEOUT = (10, 30)  # connect, read seconds
 HEALTH: list[tuple[str, str, str]] = []
 
 
 def _cached(name: str, fetch, dated: bool = True) -> pd.DataFrame | None:
+    import time
     path = os.path.join(CACHE, f"{name}.csv")
+    t0 = time.time()
     try:
         df = fetch()
+        print(f"  ok   {name} ({time.time() - t0:.1f}s)", flush=True)
         if df is None or len(df) == 0:
             raise ValueError("empty response")
         os.makedirs(CACHE, exist_ok=True)
@@ -30,6 +34,7 @@ def _cached(name: str, fetch, dated: bool = True) -> pd.DataFrame | None:
         HEALTH.append((name, "fresh", last))
         return df
     except Exception as e:  # noqa: BLE001
+        print(f"  FAIL {name} ({time.time() - t0:.1f}s): {type(e).__name__}: {str(e)[:120]}", flush=True)
         if os.path.exists(path):
             df = pd.read_csv(path, index_col=0, parse_dates=dated)
             last = str(df.index.max())[:10] if dated else ""
@@ -42,7 +47,7 @@ def _cached(name: str, fetch, dated: bool = True) -> pd.DataFrame | None:
 # ---------------------------------------------------------------- FRED
 def _fred(series_id: str) -> pd.DataFrame:
     url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
-    r = requests.get(url, timeout=60, headers=UA)
+    r = requests.get(url, timeout=TIMEOUT, headers=UA)
     r.raise_for_status()
     df = pd.read_csv(io.StringIO(r.text))
     df.columns = ["date", series_id]
@@ -59,7 +64,7 @@ def fred(series_id: str) -> pd.Series | None:
 # ---------------------------------------------------------------- IMF
 def _imf(indicator: str, iso3s: list[str]) -> pd.DataFrame:
     url = ("https://www.imf.org/external/datamapper/api/v1/" + indicator + "/" + "/".join(iso3s))
-    r = requests.get(url, timeout=90, headers=UA)
+    r = requests.get(url, timeout=TIMEOUT, headers=UA)
     r.raise_for_status()
     vals = r.json().get("values", {}).get(indicator, {})
     rows = [(c, int(y), v) for c, d in vals.items() for y, v in d.items() if v is not None]
@@ -92,14 +97,20 @@ def yahoo(ticker: str) -> pd.Series | None:
 
 # ---------------------------------------------------------------- all
 def load_all() -> dict:
+    from concurrent.futures import ThreadPoolExecutor
     allc = C.COUNTRIES + C.FACTOR_EXTRA
-    y10 = pd.DataFrame({c: s for c in allc if (s := fred(C.fred_10y(c))) is not None})
-    s3m = pd.DataFrame({c: s for c in allc if (s := fred(C.fred_3m(c))) is not None})
-    daily = pd.DataFrame({k: s for k, sid in C.FRED_DAILY.items() if (s := fred(sid)) is not None})
+    fred_ids = ([C.fred_10y(c) for c in allc] + [C.fred_3m(c) for c in allc]
+                + list(C.FRED_DAILY.values()))
     iso_all = sorted(set(C.PANEL_ISO3) | {C.ISO3[c] for c in C.COUNTRIES})
-    imf_data = {k: imf(k, iso_all) for k in C.IMF_INDICATORS}
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        fred_res = dict(zip(fred_ids, ex.map(fred, fred_ids)))
+        imf_keys = list(C.IMF_INDICATORS)
+        imf_res = dict(zip(imf_keys, ex.map(lambda k: imf(k, iso_all), imf_keys)))
     move = yahoo("^MOVE")
-    return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_data, "move": move}
+    y10 = pd.DataFrame({c: fred_res[C.fred_10y(c)] for c in allc if fred_res[C.fred_10y(c)] is not None})
+    s3m = pd.DataFrame({c: fred_res[C.fred_3m(c)] for c in allc if fred_res[C.fred_3m(c)] is not None})
+    daily = pd.DataFrame({k: fred_res[sid] for k, sid in C.FRED_DAILY.items() if fred_res[sid] is not None})
+    return {"y10": y10, "s3m": s3m, "daily": daily, "imf": imf_res, "move": move}
 
 
 # ---------------------------------------------------------------- mock (for testing)

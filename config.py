@@ -56,6 +56,7 @@ WARN = {
     "priced_pctile": (0.80, 0.95),   # term premium (US/DE/UK/JP) or spread to Bunds (FR/IT) percentile
     "fx_yield_corr": (-0.2, -0.4),   # 60-day correlation of daily yield and currency changes (lower = worse)
     "trigger_days":  (365, 182),     # days until next binding election / budget deadline (fewer = worse)
+    "politics":      (3.0, 4.0),     # political constraint composite (1–5)
 }
 
 # Political constraint score: weights on the 1–5 sub-scores in manual/politics.csv (5 = most constrained)

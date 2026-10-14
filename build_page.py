@@ -186,22 +186,30 @@ def s_warnings(data, ftab, rank, pol, base_year):
             days = np.nan
         vals[c] = {"r−g (mkt)": r.r_g_mkt, "Debt Δ 10y": path[-1] - path[0], "Req. PB vs best": r.gap_vs_best,
                    "Net interest / revenue": int_rev, "Priced percentile": rank.get(c, np.nan),
-                   "Yield–FX corr (60d)": corr, "Days to trigger": days}
+                   "Yield–FX corr (60d)": corr, "Political constraint": pol.loc[c, "political_constraint_1to5"],
+                   "Days to trigger": days}
         lv[c] = {"r−g (mkt)": lvl(r.r_g_mkt, "r_g_mkt"), "Debt Δ 10y": lvl(path[-1] - path[0], "debt_10y_chg"),
                  "Req. PB vs best": lvl(r.gap_vs_best, "gap_vs_best"),
                  "Net interest / revenue": lvl(int_rev, "int_revenue"),
                  "Priced percentile": lvl(rank.get(c, np.nan), "priced_pctile"),
                  "Yield–FX corr (60d)": lvl(corr, "fx_yield_corr", higher_worse=False),
+                 "Political constraint": lvl(pol.loc[c, "political_constraint_1to5"] + 1e-9, "politics"),
                  "Days to trigger": lvl(days, "trigger_days", higher_worse=False)}
     V, Lv = pd.DataFrame(vals).T, pd.DataFrame(lv).T
     fund_cols = ["r−g (mkt)", "Debt Δ 10y", "Req. PB vs best", "Net interest / revenue"]
     mkt_cols = ["Priced percentile", "Yield–FX corr (60d)"]
-    status = {}
+    pol_cols = ["Political constraint", "Days to trigger"]
+    status, pillars = {}, {}
     for c in V.index:
-        Fm, Mm, Tm = Lv.loc[c, fund_cols].max(), Lv.loc[c, mkt_cols].max(), Lv.loc[c, "Days to trigger"]
-        if Fm == 2 and Mm == 2:
+        Fm = Lv.loc[c, fund_cols].max()
+        Mm = Lv.loc[c, mkt_cols].max()
+        Pm = Lv.loc[c, pol_cols].max()
+        pillars[c] = (Fm, Mm, Pm)
+        if Fm == 2 and Mm == 2 and Pm == 2:
+            s = "ACUTE"
+        elif Fm == 2 and (Mm == 2 or Pm == 2):
             s = "WORRY"
-        elif Fm >= 1 and Mm >= 1:
+        elif Fm == 2 and (Mm == 1 or Pm == 1):
             s = "WATCH"
         elif Fm == 2:
             s = "SLOW BURN"
@@ -209,20 +217,22 @@ def s_warnings(data, ftab, rank, pol, base_year):
             s = "MARKET-LED"
         else:
             s = "OK"
-        if Tm == 2 and s in ("WORRY", "WATCH"):
-            s += " — trigger <6m"
         status[c] = s
     fmt = {"r−g (mkt)": "{:+.1%}", "Debt Δ 10y": "{:+.0%}", "Req. PB vs best": "{:+.1%}",
            "Net interest / revenue": "{:.0%}", "Priced percentile": "{:.0%}",
-           "Yield–FX corr (60d)": "{:+.2f}", "Days to trigger": "{:.0f}"}
+           "Yield–FX corr (60d)": "{:+.2f}", "Political constraint": "{:.1f}", "Days to trigger": "{:.0f}"}
     shade = {0: "#e8f5e9", 1: "#fff3cd", 2: "#f8d7da"}
-    scol = {"WORRY": "#f5c6cb", "WATCH": "#ffe8a1", "SLOW BURN": "#fde2c8", "MARKET-LED": "#fde2c8", "OK": "#d4edda"}
+    scol = {"ACUTE": "#e4606d", "WORRY": "#f5c6cb", "WATCH": "#ffe8a1", "SLOW BURN": "#fde2c8",
+            "MARKET-LED": "#fde2c8", "OK": "#d4edda"}
+    pname = {0: "green", 1: "amber", 2: "red"}
     maj = pol["majority_in_12m"].reindex(V.index) if "majority_in_12m" in pol else pd.Series(index=V.index, dtype=object)
     mcol = {"High": "#e8f5e9", "Medium": "#fff3cd", "Low": "#f8d7da"}
-    groups = [("Fundamental", fund_cols), ("Market", mkt_cols), ("Political", ["Days to trigger", "Majority in 12m"]),
-              ("", ["Status"])]
+    groups = [("Fundamental", fund_cols), ("Market", mkt_cols),
+              ("Political", ["Political constraint", "Days to trigger", "Majority in 12m"]),
+              ("Pillars", ["Fund.", "Market", "Politics"]), ("", ["Status"])]
     hdr1 = "<th></th>" + "".join(f'<th colspan="{len(cols)}" style="text-align:center">{g}</th>' for g, cols in groups)
-    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Majority in 12m", "Status"])
+    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Majority in 12m", "Fund.", "Market",
+                                                                            "Politics", "Status"])
     rows = ""
     for c in V.index:
         cells = ""
@@ -234,8 +244,11 @@ def s_warnings(data, ftab, rank, pol, base_year):
         mj = maj.get(c, "")
         mj = "" if pd.isna(mj) else str(mj)
         cells += f'<td style="background:{mcol.get(mj, "#fff")}">{html.escape(mj + (" (sweep)" if c == "US" and mj else ""))}</td>'
+        for lvl_ in pillars[c]:
+            l2 = int(lvl_) if pd.notna(lvl_) else 0
+            cells += f'<td style="background:{shade[l2]}">{pname[l2]}</td>'
         s = status[c]
-        cells += f'<td style="background:{scol.get(s.split(" —")[0], "#fff")};font-weight:bold">{s}</td>'
+        cells += f'<td style="background:{scol.get(s, "#fff")};font-weight:bold">{s}</td>'
         rows += f"<tr><th>{c}</th>{cells}</tr>"
     body = f'<div class="tbl"><table><tr>{hdr1}</tr><tr><th></th>{hdr}</tr>{rows}</table></div>'
     th = "; ".join([
@@ -245,56 +258,25 @@ def s_warnings(data, ftab, rank, pol, base_year):
         f"interest/revenue amber >{W['int_revenue'][0]:.0%}, red >{W['int_revenue'][1]:.0%}",
         f"priced amber >{W['priced_pctile'][0]:.0%}, red >{W['priced_pctile'][1]:.0%}",
         f"yield–FX corr amber <{W['fx_yield_corr'][0]}, red <{W['fx_yield_corr'][1]}",
-        f"trigger amber <{W['trigger_days'][0]}d, red <{W['trigger_days'][1]}d"])
-    section("Warning lights (absolute)", body,
+        f"trigger amber <{W['trigger_days'][0]}d, red <{W['trigger_days'][1]}d",
+        f"political constraint amber ≥{W['politics'][0]:.0f}, red ≥{W['politics'][1]:.0f}"])
+    section("Warning lights", body,
             "Fixed thresholds rather than rankings, so a country can be red even if it is the best of the six. "
-            "Status: WORRY = red on at least one fundamental and one market indicator; WATCH = amber or worse on "
-            "both; SLOW BURN = red fundamentals only; MARKET-LED = red market only; '— trigger <6m' when an "
-            "election or budget deadline is within six months. Majority in 12m is context only and does not feed "
-            "the status, since a majority can enable either consolidation or looser policy.",
+            "Each pillar takes the worst light among its indicators: fundamentals are the fuel, politics the "
+            "spark or the inability to fix it, markets the confirmation. ACUTE = all three red; WORRY = red "
+            "fundamentals plus red market or politics; WATCH = red fundamentals plus amber market or politics; "
+            "SLOW BURN = red fundamentals only; MARKET-LED = red market without red fundamentals. Majority in "
+            "12m is context only and does not feed the status, since a majority can enable either consolidation "
+            "or looser policy.",
             "Fundamental: r−g at market rates; debt change over 10 years if the effective rate converges to the "
             "market rate and the primary balance stays at its current level; required primary balance minus "
             "best 5-year record; IMF net interest / revenue (understates Japan's gross burden). Market: term "
             "premium (US/DE/UK/JP) or spread-to-Bund (FR/IT) percentile in own history; 60-day correlation of "
-            "daily 10y yield and currency changes (not meaningful within the euro). Political: days to the next "
-            "binding election or budget deadline, and likelihood of a working majority in a year (US: one party "
-            "controls presidency and both chambers), both from manual/politics.csv. Thresholds: " + th
+            "daily 10y yield and currency changes (not meaningful within the euro). Political: constraint "
+            "composite (see Political calendar), days to the next binding election or budget deadline, and "
+            "likelihood of a working majority in a year (US: one party controls presidency and both chambers), "
+            "from manual/politics.csv. Thresholds: " + th
             + ". Editable in config.py.")
-
-
-@safe("Overview heatmap")
-def s_heatmap(ftab, prob, spreads_prob, pol):
-    t = pd.DataFrame(index=C.COUNTRIES)
-    t["Adjustment needed at market r"] = ftab["adj_gap_mkt"]
-    t["Required PB vs best 5y record"] = ftab["gap_vs_best"]
-    t["Political constraint"] = pol["political_constraint_1to5"].reindex(C.COUNTRIES)
-    fund = F.heatmap(t)
-    priced = pd.Series(prob, dtype=float).reindex(C.COUNTRIES)
-    pr = np.ceil(priced * 5).clip(1, 5)
-    fund["Priced (percentile vs own history)"] = pr
-    fund["Fundamentals minus priced"] = (fund["composite"] - pr).round(1)
-
-    def cell(v, col):
-        if pd.isna(v):
-            return "<td></td>"
-        if col == "Fundamentals minus priced":
-            colr = "#f8d7da" if v >= 1 else ("#d4edda" if v <= -1 else "#fff")
-            return f'<td style="background:{colr}">{v:+.1f}</td>'
-        shade = {1: "#e8f5e9", 2: "#f1f8e9", 3: "#fffde7", 4: "#ffe0b2", 5: "#ffccbc"}
-        k = int(round(v)) if col != "composite" else int(round(v))
-        return f'<td style="background:{shade.get(k, "#fff")}">{v:g}</td>'
-
-    hdr = "".join(f"<th>{html.escape(c)}</th>" for c in fund.columns)
-    rows = "".join(f"<tr><th>{i}</th>" + "".join(cell(fund.loc[i, c], c) for c in fund.columns) + "</tr>"
-                   for i in fund.index)
-    body = f'<div class="tbl"><table><tr><th></th>{hdr}</tr>{rows}</table></div>'
-    section("Overview (relative)", body,
-            "Ranks the six countries against each other, 1–5 with 5 = most stressed. 'Fundamentals minus "
-            "priced' positive (red) = fundamentals rank worse than market pricing; negative (green) = market "
-            "pricing is elevated relative to fundamentals.",
-            "Composite = average of the three fundamentals columns (raw values in the sections below). 'Priced' = "
-            "percentile of today's term premium (US/DE/UK/JP, since 1998) or spread to Bunds (FR/IT, since "
-            "2008) in its own history, in quintiles.")
 
 
 @safe("Debt dynamics (r − g)")
@@ -472,8 +454,8 @@ def s_priced(data, acm_res, ftab):
             "uncertainty. Descriptive only: no claim about what share is fiscal.",
             "US, Germany, UK, Japan: ACM 10y and 30y term premia, monthly since 1998, latest from the daily curve. "
             "France and Italy: 10y spread to Bunds since 2008 (OECD monthly averages to 2016, then CNBC weekly "
-            "closes and the latest quote at the time of the daily run). The overview's 'priced' column uses "
-            "these percentiles.")
+            "closes and the latest quote at the time of the daily run). The warning lights' priced "
+            "percentile uses these.")
     return rank, {}
 
 
@@ -520,7 +502,7 @@ def s_politics(pol):
             "willingness (does the government want to consolidate?), track record (has the country delivered "
             "before?), ability (can it legislate a package: majority, coalition cohesion, veto points?) and "
             "external anchors (fiscal rules or conditional backstops forcing it; 5 = weak anchors). The "
-            "composite feeds the overview heatmap; trigger dates and majority likelihood feed the warning lights.",
+            "composite, trigger dates and majority likelihood feed the warning lights.",
             "Weights: " + ", ".join(f"{k.replace('_', ' ')} {v:.0%}" for k, v in C.POLITICS_WEIGHTS.items())
             + " (config.py). Sub-scores, election dates and majority ratings are judgements in "
             "manual/politics.csv. Dates marked approx. are estimates.")
@@ -601,9 +583,8 @@ def main():
     s_triggers(data)
     s_politics(pol)
     if ftab is not None:
-        s_heatmap(ftab, prob, sprob, pol)
-        SECTIONS.insert(0, SECTIONS.pop())   # relative heatmap at the top
-        s_warnings(data, ftab, prob, pol, base_year)   # warning lights last
+        s_warnings(data, ftab, prob, pol, base_year)
+        SECTIONS.insert(0, SECTIONS.pop())   # warning lights at the top
 
     os.makedirs(SITE, exist_ok=True)
     with open(os.path.join(SITE, "index.html"), "w", encoding="utf-8") as f:

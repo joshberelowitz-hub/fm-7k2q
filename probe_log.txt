@@ -1,0 +1,2 @@
+ecb_fm_bb_daily.csv    404   1.4s len=545 :: b'{"type":"/service/data/FM/D.DE+FR+IT.EUR.4F.BB..YLD","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"'
+ecb_fm_bb_list.csv     404   1.2s len=443 :: b'{"type":"/service/data/FM/D..EUR.4F.BB..YLD","title":"Not Found","status":404,"detail":"No Series was returned for the query: <?xml version=\\"1.0\\" en'

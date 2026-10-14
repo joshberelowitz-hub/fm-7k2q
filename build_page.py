@@ -206,33 +206,34 @@ def s_warnings(data, ftab, rank, pol, base_year):
         Pm = Lv.loc[c, pol_cols].max()
         pillars[c] = (Fm, Mm, Pm)
         if Fm == 2 and Mm == 2 and Pm == 2:
-            s = "ACUTE"
-        elif Fm == 2 and (Mm == 2 or Pm == 2):
-            s = "WORRY"
+            s = ("High", "Weak fundamentals, market stress and political risk together")
+        elif Fm == 2 and Mm == 2:
+            s = ("Elevated", "Weak fundamentals and markets are pricing it")
+        elif Fm == 2 and Pm == 2:
+            s = ("Elevated", "Weak fundamentals and a political trigger or inability to act")
         elif Fm == 2 and (Mm == 1 or Pm == 1):
-            s = "WATCH"
+            s = ("Moderate", "Weak fundamentals, early market or political pressure")
         elif Fm == 2:
-            s = "SLOW BURN"
+            s = ("Moderate", "Weak fundamentals, no market or political pressure yet")
         elif Mm == 2:
-            s = "MARKET-LED"
+            s = ("Moderate", "Market stress without weak fundamentals")
         else:
-            s = "OK"
+            s = ("Low", "")
         status[c] = s
     fmt = {"r−g (mkt)": "{:+.1%}", "Debt Δ 10y": "{:+.0%}", "Req. PB vs best": "{:+.1%}",
            "Net interest / revenue": "{:.0%}", "Priced percentile": "{:.0%}",
            "Yield–FX corr (60d)": "{:+.2f}", "Political constraint": "{:.1f}", "Days to trigger": "{:.0f}"}
     shade = {0: "#e8f5e9", 1: "#fff3cd", 2: "#f8d7da"}
-    scol = {"ACUTE": "#e4606d", "WORRY": "#f5c6cb", "WATCH": "#ffe8a1", "SLOW BURN": "#fde2c8",
-            "MARKET-LED": "#fde2c8", "OK": "#d4edda"}
+    scol = {"High": "#e4606d", "Elevated": "#f5c6cb", "Moderate": "#ffe8a1", "Low": "#d4edda"}
     pname = {0: "green", 1: "amber", 2: "red"}
     maj = pol["majority_in_12m"].reindex(V.index) if "majority_in_12m" in pol else pd.Series(index=V.index, dtype=object)
     mcol = {"High": "#e8f5e9", "Medium": "#fff3cd", "Low": "#f8d7da"}
     groups = [("Fundamental", fund_cols), ("Market", mkt_cols),
               ("Political", ["Political constraint", "Days to trigger", "Majority in 12m"]),
-              ("Pillars", ["Fund.", "Market", "Politics"]), ("", ["Status"])]
+              ("Summary", ["Fundamentals", "Market", "Politics"]), ("Overall", ["Risk", "Why"])]
     hdr1 = "<th></th>" + "".join(f'<th colspan="{len(cols)}" style="text-align:center">{g}</th>' for g, cols in groups)
-    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Majority in 12m", "Fund.", "Market",
-                                                                            "Politics", "Status"])
+    hdr = "".join(f"<th>{html.escape(k)}</th>" for k in list(V.columns) + ["Majority in 12m", "Fundamentals", "Market",
+                                                                            "Politics", "Risk", "Why"])
     rows = ""
     for c in V.index:
         cells = ""
@@ -247,8 +248,9 @@ def s_warnings(data, ftab, rank, pol, base_year):
         for lvl_ in pillars[c]:
             l2 = int(lvl_) if pd.notna(lvl_) else 0
             cells += f'<td style="background:{shade[l2]}">{pname[l2]}</td>'
-        s = status[c]
-        cells += f'<td style="background:{scol.get(s, "#fff")};font-weight:bold">{s}</td>'
+        risk, why = status[c]
+        cells += f'<td style="background:{scol.get(risk, "#fff")};font-weight:bold">{risk}</td>'
+        cells += f'<td style="text-align:left;font-size:12px">{html.escape(why)}</td>'
         rows += f"<tr><th>{c}</th>{cells}</tr>"
     body = f'<div class="tbl"><table><tr>{hdr1}</tr><tr><th></th>{hdr}</tr>{rows}</table></div>'
     th = "; ".join([
@@ -262,11 +264,13 @@ def s_warnings(data, ftab, rank, pol, base_year):
         f"political constraint amber ≥{W['politics'][0]:.0f}, red ≥{W['politics'][1]:.0f}"])
     section("Warning lights", body,
             "Fixed thresholds rather than rankings, so a country can be red even if it is the best of the six. "
-            "Each pillar takes the worst light among its indicators: fundamentals are the fuel, politics the "
-            "spark or the inability to fix it, markets the confirmation. ACUTE = all three red; WORRY = red "
-            "fundamentals plus red market or politics; WATCH = red fundamentals plus amber market or politics; "
-            "SLOW BURN = red fundamentals only; MARKET-LED = red market without red fundamentals. Majority in "
-            "12m is context only and does not feed the status, since a majority can enable either consolidation "
+            "Each summary light is the worst of its "
+            "indicators. Weak fundamentals are what make a country vulnerable; politics is the trigger or the "
+            "inability to fix it; markets show whether investors are already charging for it. Risk is High when "
+            "all three are red, Elevated when weak fundamentals meet either market stress or political risk, "
+            "Moderate when there is one red light on its own or alongside early (amber) pressure, and Low "
+            "otherwise. Majority in "
+            "12m is context only and does not feed the risk level, since a majority can enable either consolidation "
             "or looser policy.",
             "Fundamental: r−g at market rates; debt change over 10 years if the effective rate converges to the "
             "market rate and the primary balance stays at its current level; required primary balance minus "

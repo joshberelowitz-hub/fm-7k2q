@@ -144,6 +144,32 @@ def s_health():
     section("Data health", body)
 
 
+def willingness(data, ftab, base_year) -> pd.DataFrame:
+    """Data-based willingness from IMF structural primary balance (structural balance + net interest):
+    revealed = change over the past 3 years, stated = IMF-projected change over the next 5 (announced
+    policies), coverage = stated change / adjustment needed at market rates."""
+    imf = data["imf"]
+    rows = {}
+    for c in C.COUNTRIES:
+        i = C.ISO3[c]
+        sp = imf["structural"][i] + (imf["primary"][i] - imf["overall"][i])
+        rev = sp.get(base_year) - sp.get(base_year - 3)
+        sta = sp.get(base_year + 5) - sp.get(base_year)
+        need = ftab.loc[c, "adj_gap_mkt"] * 100
+        cov = 1.0 if need <= 0 else max(sta, 0) / need
+        effort = (rev + sta) / 2
+
+        def band(x, bands):
+            for k, t in enumerate(bands):
+                if x >= t:
+                    return k + 1
+            return 5
+        s = (band(effort, C.WILLINGNESS_EFFORT_BANDS) + band(cov, C.WILLINGNESS_COVERAGE_BANDS)) / 2
+        rows[c] = {"Revealed: Δ structural PB, past 3y (pp)": rev, "Stated: IMF-projected Δ, next 5y (pp)": sta,
+                   "Adjustment needed at market r (pp)": need, "Plan covers need": cov, "willingness": s}
+    return pd.DataFrame(rows).T
+
+
 @safe("Warning lights")
 def s_warnings(data, ftab, rank, pol, base_year):
     W = C.WARN
@@ -480,15 +506,23 @@ def s_triggers(data):
 
 @safe("Political calendar")
 def s_politics(pol):
-    section("Political calendar and capacity", table_html(pol),
-            "Political constraint, 1–5 with 5 = most constrained, is a weighted average of four judgements: "
-            "willingness (does the government want to consolidate?), track record (has the country delivered "
-            "before?), ability (can it legislate a package: majority, coalition cohesion, veto points?) and "
-            "external anchors (fiscal rules or conditional backstops forcing it; 5 = weak anchors). The "
-            "composite, trigger dates and majority likelihood feed the warning lights.",
-            "Weights: " + ", ".join(f"{k.replace('_', ' ')} {v:.0%}" for k, v in C.POLITICS_WEIGHTS.items())
-            + " (config.py). Sub-scores, election dates and majority ratings are judgements in "
-            "manual/politics.csv. Dates marked approx. are estimates.")
+    fmt = {"Revealed: Δ structural PB, past 3y (pp)": "{:+.1f}", "Stated: IMF-projected Δ, next 5y (pp)": "{:+.1f}",
+           "Adjustment needed at market r (pp)": "{:.1f}", "Plan covers need": "{:.0%}", "willingness": "{:.1f}",
+           "political_constraint_1to5": "{:.1f}"}
+    section("Political calendar and capacity", table_html(pol, fmt),
+            "Political constraint, 1–5 with 5 = most constrained, is a weighted average of four scores. "
+            "Willingness is measured from data: revealed effort (change in the IMF structural primary balance "
+            "over the past three years), stated effort (IMF-projected change over the next five, which builds "
+            "in announced policies) and whether that plan covers the adjustment needed at market rates. Track "
+            "record (has the country delivered before?), ability (majority, coalition cohesion, veto points) and "
+            "external anchors (fiscal rules or conditional backstops; 5 = weak) are judgements. The composite, "
+            "trigger dates and majority likelihood feed the warning lights.",
+            "Structural primary balance = IMF structural balance (GGSB_NPGDP) plus net interest. Willingness = "
+            "average of an effort score (mean of revealed and stated change: ≥+2pp → 1, ≥+1 → 2, ≥0 → 3, ≥−1 → 4, "
+            "else 5) and a coverage score (stated change / need: ≥100% → 1, ≥75% → 2, ≥50% → 3, ≥25% → 4, else 5; "
+            "1 if no adjustment is needed). Weights: " + ", ".join(f"{k.replace('_', ' ')} {v:.0%}" for k, v in C.POLITICS_WEIGHTS.items())
+            + " (config.py). Track record, ability, anchors, election dates and majority ratings are judgements "
+            "in manual/politics.csv. Dates marked approx. are estimates.")
 # ----------------------------------------------------------------- page
 CSS = """
 :root{--bg:#fafafa;--fg:#1a1a1a;--muted:#666;--card:#fff;--line:#e3e3e3;--accent:#1f4e79}
@@ -536,10 +570,17 @@ def main():
     data = L.mock_all() if mock else L.load_all()
     base_year = dt.date.today().year
     pol = pd.read_csv(os.path.join(ROOT, "manual", "politics.csv")).set_index("country")
-    wts = C.POLITICS_WEIGHTS
-    pol.insert(0, "political_constraint_1to5", sum(pol[k] * w for k, w in wts.items()).round(1))
 
     ftab = safe("Fiscal table")(fiscal_table)(data, base_year)
+    wts = C.POLITICS_WEIGHTS
+    will = safe("Willingness")(willingness)(data, ftab, base_year) if ftab is not None else None
+    if will is not None:
+        pol.insert(0, "willingness", will["willingness"])
+        for col in will.columns[:4][::-1]:
+            pol.insert(0, col, will[col])
+    else:
+        pol.insert(0, "willingness", 3.0)
+    pol.insert(0, "political_constraint_1to5", sum(pol[k] * w for k, w in wts.items()).round(1))
     acm_res = None
     if "curves" in data:
         acm_res = safe("ACM model")(TM.run_all)(data["curves"], data["y10"].attrs.get("oecd"))

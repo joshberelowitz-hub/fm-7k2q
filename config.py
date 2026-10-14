@@ -26,6 +26,7 @@ IMF_INDICATORS = {
     "real_g": "NGDP_RPCH",
     "infl": "PCPIPCH",
     "revenue": "GGR_NGDP",
+    "structural": "GGSB_NPGDP",
 }
 
 # --- Assumptions you will want to set ---------------------------------------
@@ -56,3 +57,7 @@ WARN = {
 
 # Political constraint score: weights on the 1–5 sub-scores in manual/politics.csv (5 = most constrained)
 POLITICS_WEIGHTS = {"willingness": 0.35, "track_record": 0.25, "ability": 0.25, "anchors": 0.15}
+
+# Willingness (data-based): structural primary balance effort and how much of the need the plan covers
+WILLINGNESS_EFFORT_BANDS = [2.0, 1.0, 0.0, -1.0]      # avg of revealed & stated change (pp): >= band -> score 1,2,3,4; else 5
+WILLINGNESS_COVERAGE_BANDS = [1.0, 0.75, 0.5, 0.25]   # stated change / required adjustment: >= band -> 1,2,3,4; else 5

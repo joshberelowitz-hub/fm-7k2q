@@ -1,3 +1,0 @@
-imf_ggsb.json          200   0.6s len=9438 :: b'{"meta":{},"data":{"dataSets":[{"structure":0,"action":"Replace","series":{"0:0:0":{"attributes":[0,0,0,"9/30/2026"],"observations":{"0":["-5.071182"]'
-imf_ggcbp.json         200   0.4s len=3018 :: b'{"meta":{},"data":{"dataSets":[{"structure":0,"action":"Replace"}],"structures":[{"dataSets":[0],"links":[{"urn":"urn:sdmx:org.sdmx.infomodel.datastru'
-imf_gginc.json         200   0.4s len=9721 :: b'{"meta":{},"data":{"dataSets":[{"structure":0,"action":"Replace","series":{"0:0:0":{"attributes":[0,0,0,"9/30/2026"],"observations":{"0":["-3.209769"]'

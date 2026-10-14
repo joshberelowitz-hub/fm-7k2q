@@ -151,10 +151,8 @@ def s_heatmap(ftab, prob, spreads_prob, pol):
     t["Political constraint"] = pol["political_constraint_1to5"].reindex(C.COUNTRIES)
     fund = F.heatmap(t)
     priced = pd.Series(prob, dtype=float).reindex(C.COUNTRIES)
-    sp = pd.Series(spreads_prob, dtype=float).reindex(C.COUNTRIES)
-    priced = pd.concat([priced, sp], axis=1).max(axis=1)
-    pr = F.heatmap(priced.to_frame("Priced stress"))["Priced stress"]
-    fund["Priced stress (market)"] = pr
+    pr = np.ceil(priced * 5).clip(1, 5)
+    fund["Priced (percentile vs own history)"] = pr
     fund["Fundamentals minus priced"] = (fund["composite"] - pr).round(1)
 
     def cell(v, col):
@@ -174,8 +172,9 @@ def s_heatmap(ftab, prob, spreads_prob, pol):
     section("Overview", body,
             "Scores 1–5, 5 = most stressed, ranked across these six countries. "
             "'composite' averages the three fundamentals columns (raw values in the sections below). 'Fundamentals minus priced' "
-            "positive (red) = fundamentals look worse than markets are pricing; negative (green) = "
-            "markets pricing more stress than fundamentals suggest.")
+            "positive (red) = fundamentals rank worse than market pricing; negative (green) = market "
+            "pricing is elevated relative to fundamentals. 'Priced' = percentile of today's term premium "
+            "(US/DE/UK/JP, since 1998) or spread to Bunds (FR/IT, since 2008) in its own history, in quintiles.")
 
 
 @safe("Debt dynamics (r − g)")
@@ -265,18 +264,6 @@ def s_tp(data, tp, acm_res):
     if acm_res and acm_res["notes"]:
         body += "<p class='warn'>" + html.escape("; ".join(acm_res["notes"])) + "</p>"
 
-    univ = [u for u in C.FACTOR_UNIVERSE if u in tpm]
-    resid = F.idiosyncratic_premium(tpm.dropna(), factor_universe=univ)
-    betas = pd.Series({c: F._ols(tpm.dropna()[c], F.global_factor(tpm.dropna()[[u for u in univ if u != c]])
-                                 .rename("g").to_frame())[0]["g"] for c in tpm.columns})
-    fig2 = go.Figure()
-    for c in resid.columns:
-        fig2.add_scatter(x=resid.index, y=resid[c], name=c, line=dict(color=COLORS.get(c, "#999")))
-    fig2.update_layout(title="Idiosyncratic 10y term premium (residual vs other countries' common factor), bp")
-    body += fig_html(fig2, 380)
-    body += table_html(pd.DataFrame({"Beta to common factor": betas,
-                                     "Latest idiosyncratic (bp)": resid.iloc[-1].reindex(betas.index)}),
-                       {"Beta to common factor": "{:.2f}", "Latest idiosyncratic (bp)": "{:.0f}"})
     section("Term premium (ACM)", body,
             "Adrian-Crump-Moench model as implemented by Bloomberg Economics: zero curves 1m–30y "
             "(Fed GSW, Bundesbank, BoE, Japan MoF bootstrapped), 5 principal-component factors, VAR(1), "
@@ -287,69 +274,67 @@ def s_tp(data, tp, acm_res):
             "(correlation with the NY Fed series 0.996). Japan (MoF par curve bootstrapped to zeros, sample "
             "from 1992): Aug-26 month-end ~220bp vs Bloomberg Intelligence BIFITPJP 238bp (Daiwa's model: "
             "184bp). Samples starting after 1999 are dominated by the zero bound and should not be used. "
-            "France: no free zero curve — see spreads. Idiosyncratic premium = residual from "
-            "regressing each country on the leave-one-out common factor of " + ", ".join(univ) + ".")
-    return resid
+            "France: no free zero curve — see spreads.")
+
+
+def _pctile(s: pd.Series) -> float:
+    s = s.dropna()
+    return float((s <= s.iloc[-1]).mean())
 
 
 @safe("How much is priced")
-def s_priced(data, resid, ftab):
+def s_priced(data, acm_res, ftab):
     body = ""
-    # 1. idiosyncratic premium vs historical stress episodes
-    lv = [resid.loc[m, c].mean() for c, m in C.STRESS_EPISODES
-          if c in resid and m in resid.index.strftime("%Y-%m")]
-    stressed = float(np.nanmean(lv)) if lv else np.nan
-    if not stressed or stressed <= 0 or np.isnan(stressed):
-        stressed = float(np.nanpercentile(resid.abs().values, 95))
-    latest = resid.iloc[-1]
-    prob = {c: float(F.implied_stress_probability(latest[c], 0, stressed))
-            for c in C.COUNTRIES if c in latest and c in C.TP_PRICED}
-    fig = go.Figure(go.Bar(x=list(prob), y=[v * 100 for v in prob.values()],
-                           marker_color=[COLORS[c] for c in prob]))
-    fig.update_layout(title=f"Idiosyncratic premium as % of the way to a past stress episode "
-                            f"(stress level = {stressed:.0f}bp)", yaxis_title="%", yaxis_range=[0, 100])
-    body += fig_html(fig, 330)
+    rank = {}
+    if acm_res is not None and len(acm_res["monthly"]):
+        m = acm_res["monthly"]
+        lt = acm_res["latest"]
+        rows = {}
+        for c in C.TP_PRICED:
+            if f"{c}_tp120" not in m:
+                continue
+            tp10 = (m[f"{c}_tp120"] * 100).loc["1998":].dropna()
+            tp30 = (m[f"{c}_tp360"] * 100).loc["1998":].dropna()
+            y10 = m[f"{c}_y120"].loc["1998":]
+            vol = (m[f"{c}_y120"].diff().rolling(12).std() * np.sqrt(12) * 100).loc["1998":]
+            now10 = float(lt.loc[c, "tp10"]) * 100 if c in lt.index else tp10.iloc[-1]
+            now30 = float(lt.loc[c, "tp30"]) * 100 if c in lt.index else tp30.iloc[-1]
+            p10 = float((tp10 <= now10).mean())
+            rank[c] = p10
+            rows[c] = {
+                "10y TP now": now10, "Percentile since 1998": p10,
+                "1998–07 avg": tp10.loc[:"2007"].mean(), "2012–19 avg": tp10.loc["2012":"2019"].mean(),
+                "Peak": tp10.max(), "Peak date": tp10.idxmax().strftime("%b %Y"),
+                "30y TP now": now30, "30y percentile": float((tp30 <= now30).mean()),
+                "10y yield now / 98–07 / 12–19": f"{y10.dropna().iloc[-1]:.1f} / {y10.loc[:'2007'].mean():.1f} / {y10.loc['2012':'2019'].mean():.1f}",
+                "Yield vol now / 98–07 (bp)": f"{vol.dropna().iloc[-1]:.0f} / {vol.loc[:'2007'].mean():.0f}",
+            }
+        body += table_html(pd.DataFrame(rows).T, {
+            "10y TP now": "{:.0f}", "Percentile since 1998": "{:.0%}", "1998–07 avg": "{:.0f}",
+            "2012–19 avg": "{:.0f}", "Peak": "{:.0f}", "30y TP now": "{:.0f}", "30y percentile": "{:.0%}"})
 
-    # 2. spreads to Bunds
-    sprob = {}
     y10 = data["y10"]
     fig2 = go.Figure()
-    for c, cal in C.SPREAD_CALIB.items():
+    srows = {}
+    for c in ("FR", "IT"):
         if c in y10 and "DE" in y10:
             sp = ((y10[c] - y10["DE"]) * 100).loc["2008":].dropna()
             fig2.add_scatter(x=sp.index, y=sp, name=f"{c}–DE", line=dict(color=COLORS[c]))
-            sprob[c] = float(F.implied_stress_probability(sp.iloc[-1], cal["benign"], cal["stressed"]))
-    fig2.update_layout(title="10y spread to Germany, bp")
-    body += fig_html(fig2, 330)
-    body += table_html(pd.DataFrame({
-        "Benign (bp)": {c: v["benign"] for c, v in C.SPREAD_CALIB.items()},
-        "Stressed (bp)": {c: v["stressed"] for c, v in C.SPREAD_CALIB.items()},
-        "Stress reference": {c: v["label"] for c, v in C.SPREAD_CALIB.items()},
-        "% of way to stress": {c: sprob.get(c, np.nan) for c in C.SPREAD_CALIB}}),
-        {"% of way to stress": "{:.0%}"})
-
-    # 3. implied debt path
-    lo, hi = C.DEBT_ELASTICITY_BAND
-    rows = {}
-    for c in C.COUNTRIES:
-        if c not in latest or c not in C.TP_PRICED:
-            continue
-        p = latest[c]
-        rows[c] = {"Idiosyncratic premium (bp)": p,
-                   "IMF debt % GDP": ftab.loc[c, "debt"] * 100,
-                   f"Implied extra debt @{C.DEBT_ELASTICITY}bp/pp": p / C.DEBT_ELASTICITY,
-                   f"range @{hi}–{lo}bp/pp": f"{p / hi:.0f} to {p / lo:.0f}"}
-    body += "<h3>Debt path implied by the idiosyncratic premium</h3>"
-    body += table_html(pd.DataFrame(rows).T, {"Idiosyncratic premium (bp)": "{:.0f}",
-                                              "IMF debt % GDP": "{:.0f}",
-                                              f"Implied extra debt @{C.DEBT_ELASTICITY}bp/pp": "{:+.0f}"})
+            rank[c] = _pctile(sp)
+            srows[c] = {"10y spread to Bunds now (bp)": sp.iloc[-1], "Percentile since 2008": rank[c],
+                        "2012–19 avg": sp.loc["2012":"2019"].mean(), "Peak": sp.max(),
+                        "Peak date": sp.idxmax().strftime("%b %Y")}
+    fig2.update_layout(title="10y spread to Germany, bp (monthly)")
+    body += "<h3>France and Italy: spreads to Bunds</h3>" + fig_html(fig2, 330)
+    body += table_html(pd.DataFrame(srows).T, {"10y spread to Bunds now (bp)": "{:.0f}",
+                                               "Percentile since 2008": "{:.0%}", "2012–19 avg": "{:.0f}",
+                                               "Peak": "{:.0f}"})
     section("How much is priced", body,
-            "Three lenses: (1) idiosyncratic premium relative to the average residual at "
-            + ", ".join(f"{c} {m}" for c, m in C.STRESS_EPISODES)
-            + "; (2) spreads to Bunds vs benign/stressed calibrations; (3) extra debt/GDP the "
-              "idiosyncratic premium would justify at the literature yield elasticity. All "
-              "calibrations are in config.py.")
-    return prob, sprob
+            "Descriptive only. US, Germany, UK, Japan: today's ACM term premium (bp) against its own "
+            "monthly history since 1998, with the rate backdrop alongside — pre-QE premia were earned at "
+            "higher yield levels and inflation uncertainty, so 1998–07 is not a pure 'normal'. France and "
+            "Italy: 10y spread to Bunds since 2008. The heatmap's 'priced' column is the percentile.")
+    return rank, {}
 
 
 @safe("Triggers and market stress signals")
@@ -457,10 +442,11 @@ def main():
         s_dynamics(data, ftab, base_year)
     if ftab is not None:
         s_cyclical(ftab)
-    resid = s_tp(data, tp, acm_res) if tp is not None else None
+    if tp is not None:
+        s_tp(data, tp, acm_res)
     prob, sprob = ({}, {})
-    if resid is not None and ftab is not None:
-        r = s_priced(data, resid, ftab)
+    if ftab is not None:
+        r = s_priced(data, acm_res, ftab)
         if r:
             prob, sprob = r
     s_triggers(data)

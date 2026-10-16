@@ -114,7 +114,7 @@ def fiscal_table(data: dict, base_year: int) -> pd.DataFrame:
         y = base_year
         g_fwd = C.LTCMA_G.get(c, g_nom.loc[y + 1:y + 5].mean())
         r_mkt = C.LTCMA_R.get(c, latest_10y(data, c) / 100)
-        hist_pb = prim.loc[:y - 1].rolling(5).mean()
+        hist_pb = prim.loc[C.TRACK_RECORD_START:y - 1].rolling(5).mean()
         d0, pb0, r0 = debt.get(y), prim.get(y), eff_r.get(y)
         rows[c] = {
             "debt": d0, "primary_bal": pb0, "eff_r": r0, "mkt_r_10y": r_mkt, "fwd_g": g_fwd,
@@ -122,6 +122,7 @@ def fiscal_table(data: dict, base_year: int) -> pd.DataFrame:
             "req_pb_eff": F.stabilising_pb(d0, r0, g_fwd),
             "req_pb_mkt": F.stabilising_pb(d0, r_mkt, g_fwd),
             "best_5y_pb": hist_pb.max(),
+            "best_5y_window": hist_pb.idxmax(),
         }
     t = pd.DataFrame(rows).T.astype(float)
     t["adj_gap_mkt"] = t["req_pb_mkt"] - t["primary_bal"]
@@ -339,9 +340,11 @@ def s_dynamics(data, ftab, base_year):
                  "req_pb_eff", "req_pb_mkt", "best_5y_pb", "adj_gap_mkt"]].copy()
     show.columns = ["Debt % GDP", "Primary bal", "Effective r", "Market r (10y)", "Fwd nominal g",
                     "r−g (eff)", "r−g (mkt)", "Req. PB (eff r)", "Req. PB (mkt r)",
-                    "Best 5y avg PB", "Adjustment at mkt r"]
+                    "Best 5y avg PB since 2001", "Adjustment at mkt r"]
     pct = "{:.1%}"
-    body = table_html(show, {c: pct for c in show.columns})
+    fmt = {c: pct for c in show.columns}
+    show.insert(9, "Best 5y window", ftab["best_5y_window"].map(lambda y: f"{int(y) - 4}–{int(y)}" if pd.notna(y) else ""))
+    body = table_html(show, fmt)
     fig = go.Figure()
     imf = data["imf"]["debt"]
     for c in C.COUNTRIES:

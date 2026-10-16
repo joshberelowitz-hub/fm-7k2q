@@ -61,3 +61,6 @@ POLITICS_WEIGHTS = {"willingness": 0.35, "track_record": 0.25, "ability": 0.25, 
 # Willingness (data-based): structural primary balance effort and how much of the need the plan covers
 WILLINGNESS_EFFORT_BANDS = [2.0, 1.0, 0.0, -1.0]      # avg of revealed & stated change (pp): >= band -> score 1,2,3,4; else 5
 WILLINGNESS_COVERAGE_BANDS = [1.0, 0.75, 0.5, 0.25]   # stated change / required adjustment: >= band -> 1,2,3,4; else 5
+
+# Track record window: best 5-year average primary balance is measured from this year (US IMF data starts 2001)
+TRACK_RECORD_START = 2001

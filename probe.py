@@ -2,8 +2,8 @@ import requests, time, os
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
 os.makedirs("probe_samples", exist_ok=True)
 URLS = {
- "ust2022.csv": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2022/all?type=daily_treasury_yield_curve&field_tdr_date_value=2022&page&_format=csv",
- "ust2023.csv": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2023/all?type=daily_treasury_yield_curve&field_tdr_date_value=2023&page&_format=csv",
+ "oecd_eo_pb.csv": "https://sdmx.oecd.org/public/rest/data/OECD.ECO.MAD,DSD_EO@DF_EO,/USA+FRA+DEU+ITA+JPN+GBR.NLGXQ.A?format=csvfile",
+ "oecd_eo_any.csv": "https://sdmx.oecd.org/public/rest/data/OECD.ECO.MAD,DSD_EO@DF_EO,/USA..A?format=csvfile&startPeriod=1990&endPeriod=1992",
 }
 for k, u in URLS.items():
     t = time.time()

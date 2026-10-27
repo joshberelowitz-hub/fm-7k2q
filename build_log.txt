@@ -1,56 +1,56 @@
-  ok   yahoo_DXY (0.2s, 5239 rows)
-  ok   yahoo_JPY (0.2s, 5399 rows)
-  ok   yahoo_EURUSD (0.2s, 5399 rows)
-  ok   yahoo_GBPUSD (0.2s, 5411 rows)
-  ok   yahoo_MOVE (0.1s, 5145 rows)
-  ok   boe_10y (1.1s, 5257 rows)
-  ok   oecd_rates (1.7s, 442 rows)
-  ok   imf_GGXWDG_NGDP (0.8s, 272 rows)
-  ok   acm_tp (2.0s, 784 rows)
-  ok   bbk_10y (2.2s, 5285 rows)
-  ok   mof_jgb (2.3s, 5092 rows)
-  ok   imf_GGXCNL_NGDP (0.5s, 272 rows)
-  ok   cnbc_fr_it_10y (1.9s, 524 rows)
-  ok   imf_NGDP_RPCH (0.6s, 312 rows)
-  ok   imf_GGXONLB_NGDP (0.8s, 272 rows)
-  ok   imf_PCPIPCH (0.6s, 312 rows)  ok   imf_GGSB_NPGDP (0.5s, 257 rows)
-
-  ok   imf_GGR_NGDP (0.6s, 272 rows)
-  ok   ust_real_curve (10.8s, 5207 rows)
-  ok   ust_curve (11.6s, 5208 rows)
-  ok   curve_us_gsw (0.5s, 16300 rows)
-  FAIL curve_uk_monthly (0.6s): AttributeError: partially initialized module 'openpyxl' has no attribute 'Workbook' (most likely due to a circular import)
-  ok   curve_uk_daily (0.9s, 16 rows)
-  ok   euribor1m (1.3s, 393 rows)
+  ok   yahoo_JPY (0.2s, 5400 rows)
+  ok   yahoo_DXY (0.2s, 5240 rows)
+  ok   yahoo_GBPUSD (0.2s, 5412 rows)
+  ok   oecd_rates (0.5s, 442 rows)
+  ok   yahoo_EURUSD (0.4s, 5400 rows)
+  ok   acm_tp (0.9s, 784 rows)
+  ok   yahoo_MOVE (0.5s, 5146 rows)
+  ok   imf_GGXWDG_NGDP (0.4s, 272 rows)
+  ok   imf_GGXCNL_NGDP (0.4s, 272 rows)
+  ok   imf_GGXONLB_NGDP (0.4s, 272 rows)
+  ok   imf_NGDP_RPCH (0.4s, 312 rows)
+  ok   cnbc_fr_it_10y (1.1s, 524 rows)
+  ok   bbk_10y (2.1s, 5286 rows)
+  ok   imf_GGR_NGDP (0.4s, 272 rows)
+  ok   imf_PCPIPCH (0.4s, 312 rows)
+  ok   imf_GGSB_NPGDP (0.4s, 257 rows)
+  ok   boe_10y (2.4s, 5258 rows)
+  ok   mof_jgb (2.5s, 5093 rows)
+  ok   ust_real_curve (10.2s, 5208 rows)
+  ok   ust_curve (11.2s, 5209 rows)
+  FAIL curve_uk_monthly (0.2s): AttributeError: partially initialized module 'openpyxl' has no attribute 'Workbook' (most likely due to a circular import)
+  ok   curve_uk_daily (0.4s, 17 rows)
+  ok   curve_us_gsw (0.6s, 16300 rows)
   ok   curve_de_monthly (1.4s, 357 rows)
-  ok   curve_jp_mof (2.4s, 10108 rows)
-  ok   curve_de_daily (3.9s, 43 rows)
+  ok   euribor1m (1.8s, 393 rows)
+  ok   curve_jp_mof (2.2s, 10109 rows)
+  ok   curve_de_daily (5.4s, 45 rows)
 Wrote site/index.html — 7 sections, 0 warnings
 DATA HEALTH:
-  yahoo_DXY                                fresh                                                        2026-10-26
-  yahoo_JPY                                fresh                                                        2026-10-26
-  yahoo_EURUSD                             fresh                                                        2026-10-26
-  yahoo_GBPUSD                             fresh                                                        2026-10-26
-  yahoo_MOVE                               fresh                                                        2026-10-23
-  boe_10y                                  fresh                                                        2026-10-21
+  yahoo_DXY                                fresh                                                        2026-10-27
+  yahoo_JPY                                fresh                                                        2026-10-27
+  yahoo_GBPUSD                             fresh                                                        2026-10-27
   oecd_rates                               fresh                                                        2026-10-01
-  imf_GGXWDG_NGDP                          fresh                                                        
+  yahoo_EURUSD                             fresh                                                        2026-10-27
   acm_tp                                   fresh                                                        2026-09-30
-  bbk_10y                                  fresh                                                        2026-10-23
-  mof_jgb                                  fresh                                                        2026-10-23
+  yahoo_MOVE                               fresh                                                        2026-10-26
+  imf_GGXWDG_NGDP                          fresh                                                        
   imf_GGXCNL_NGDP                          fresh                                                        
-  cnbc_fr_it_10y                           fresh                                                        2026-10-26
-  imf_NGDP_RPCH                            fresh                                                        
   imf_GGXONLB_NGDP                         fresh                                                        
-  imf_GGSB_NPGDP                           fresh                                                        
-  imf_PCPIPCH                              fresh                                                        
+  imf_NGDP_RPCH                            fresh                                                        
+  cnbc_fr_it_10y                           fresh                                                        2026-10-27
+  bbk_10y                                  fresh                                                        2026-10-26
   imf_GGR_NGDP                             fresh                                                        
-  ust_real_curve                           fresh                                                        2026-10-23
-  ust_curve                                fresh                                                        2026-10-23
-  curve_us_gsw                             fresh                                                        2026-10-16
+  imf_PCPIPCH                              fresh                                                        
+  imf_GGSB_NPGDP                           fresh                                                        
+  boe_10y                                  fresh                                                        2026-10-22
+  mof_jgb                                  fresh                                                        2026-10-26
+  ust_real_curve                           fresh                                                        2026-10-26
+  ust_curve                                fresh                                                        2026-10-26
   curve_uk_monthly                         cached copy (download failed: AttributeError)                2026-09-30
-  curve_uk_daily                           fresh                                                        2026-10-22
-  euribor1m                                fresh                                                        2026-09-01
+  curve_uk_daily                           fresh                                                        2026-10-23
+  curve_us_gsw                             fresh                                                        2026-10-16
   curve_de_monthly                         fresh                                                        2026-09-01
-  curve_jp_mof                             fresh                                                        2026-10-23
-  curve_de_daily                           fresh                                                        2026-10-23
+  euribor1m                                fresh                                                        2026-09-01
+  curve_jp_mof                             fresh                                                        2026-10-26
+  curve_de_daily                           fresh                                                        2026-10-26

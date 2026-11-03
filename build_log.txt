@@ -1,56 +1,56 @@
-  ok   yahoo_DXY (0.2s, 5244 rows)
-  ok   yahoo_JPY (0.2s, 5404 rows)
-  ok   yahoo_EURUSD (0.2s, 5404 rows)
-  ok   yahoo_GBPUSD (0.2s, 5416 rows)
-  ok   yahoo_MOVE (0.1s, 5150 rows)
-  ok   boe_10y (1.1s, 5262 rows)
-  ok   acm_tp (1.4s, 784 rows)
-  ok   oecd_rates (1.5s, 442 rows)
-  ok   bbk_10y (1.6s, 5290 rows)
+  ok   yahoo_JPY (0.2s, 5405 rows)
+  ok   yahoo_DXY (0.2s, 5245 rows)
+  ok   oecd_rates (0.4s, 442 rows)
+  ok   yahoo_EURUSD (0.2s, 5405 rows)
+  ok   acm_tp (0.9s, 784 rows)
+  ok   yahoo_MOVE (0.5s, 5151 rows)
+  ok   yahoo_GBPUSD (0.7s, 5417 rows)
+  ok   boe_10y (1.2s, 5263 rows)
+  ok   imf_GGXCNL_NGDP (0.4s, 272 rows)
   ok   imf_GGXWDG_NGDP (0.4s, 272 rows)
-  ok   imf_GGXCNL_NGDP (0.2s, 272 rows)
-  ok   imf_NGDP_RPCH (0.2s, 312 rows)
   ok   imf_GGXONLB_NGDP (0.3s, 272 rows)
-  ok   imf_PCPIPCH (0.2s, 312 rows)
-  ok   imf_GGR_NGDP (0.2s, 272 rows)
-  ok   cnbc_fr_it_10y (1.5s, 523 rows)
-  ok   imf_GGSB_NPGDP (0.4s, 257 rows)
-  ok   mof_jgb (3.9s, 5097 rows)
-  ok   ust_curve (5.6s, 5213 rows)
-  ok   ust_real_curve (5.2s, 5212 rows)
-  ok   curve_us_gsw (0.4s, 16305 rows)
-  ok   curve_uk_daily (0.9s, 21 rows)
-  ok   euribor1m (1.0s, 393 rows)
-  ok   curve_de_monthly (1.2s, 357 rows)
-  ok   curve_jp_mof (2.8s, 10113 rows)
-  ok   curve_uk_monthly (3.1s, 681 rows)
-  ok   curve_de_daily (4.0s, 43 rows)
+  ok   bbk_10y (1.6s, 5291 rows)
+  ok   imf_PCPIPCH (0.3s, 312 rows)
+  ok   imf_NGDP_RPCH (0.3s, 312 rows)
+  ok   imf_GGR_NGDP (0.4s, 272 rows)
+  ok   imf_GGSB_NPGDP (0.3s, 257 rows)
+  ok   cnbc_fr_it_10y (1.3s, 523 rows)
+  ok   mof_jgb (2.6s, 5097 rows)
+  ok   ust_real_curve (5.8s, 5213 rows)
+  ok   ust_curve (6.2s, 5214 rows)
+  ok   curve_uk_daily (0.4s, 22 rows)
+  ok   curve_us_gsw (0.5s, 16305 rows)
+  ok   euribor1m (1.2s, 394 rows)
+  ok   curve_de_monthly (1.3s, 358 rows)
+  ok   curve_uk_monthly (1.8s, 681 rows)
+  ok   curve_jp_mof (2.2s, 10113 rows)
+  ok   curve_de_daily (4.0s, 45 rows)
 Wrote site/index.html — 7 sections, 0 warnings
 DATA HEALTH:
-  yahoo_DXY                                fresh                                                        2026-11-02
-  yahoo_JPY                                fresh                                                        2026-11-02
-  yahoo_EURUSD                             fresh                                                        2026-11-02
-  yahoo_GBPUSD                             fresh                                                        2026-11-02
-  yahoo_MOVE                               fresh                                                        2026-10-30
-  boe_10y                                  fresh                                                        2026-10-28
-  acm_tp                                   fresh                                                        2026-09-30
+  yahoo_JPY                                fresh                                                        2026-11-03
+  yahoo_DXY                                fresh                                                        2026-11-03
   oecd_rates                               fresh                                                        2026-10-01
-  bbk_10y                                  fresh                                                        2026-10-30
-  imf_GGXWDG_NGDP                          fresh                                                        
+  yahoo_EURUSD                             fresh                                                        2026-11-03
+  acm_tp                                   fresh                                                        2026-09-30
+  yahoo_MOVE                               fresh                                                        2026-11-02
+  yahoo_GBPUSD                             fresh                                                        2026-11-03
+  boe_10y                                  fresh                                                        2026-10-29
   imf_GGXCNL_NGDP                          fresh                                                        
-  imf_NGDP_RPCH                            fresh                                                        
+  imf_GGXWDG_NGDP                          fresh                                                        
   imf_GGXONLB_NGDP                         fresh                                                        
+  bbk_10y                                  fresh                                                        2026-11-02
   imf_PCPIPCH                              fresh                                                        
+  imf_NGDP_RPCH                            fresh                                                        
   imf_GGR_NGDP                             fresh                                                        
-  cnbc_fr_it_10y                           fresh                                                        2026-11-02
   imf_GGSB_NPGDP                           fresh                                                        
+  cnbc_fr_it_10y                           fresh                                                        2026-11-03
   mof_jgb                                  fresh                                                        2026-10-30
-  ust_curve                                fresh                                                        2026-10-30
-  ust_real_curve                           fresh                                                        2026-10-30
+  ust_real_curve                           fresh                                                        2026-11-02
+  ust_curve                                fresh                                                        2026-11-02
+  curve_uk_daily                           fresh                                                        2026-10-30
   curve_us_gsw                             fresh                                                        2026-10-23
-  curve_uk_daily                           fresh                                                        2026-10-29
-  euribor1m                                fresh                                                        2026-09-01
-  curve_de_monthly                         fresh                                                        2026-09-01
-  curve_jp_mof                             fresh                                                        2026-10-30
+  euribor1m                                fresh                                                        2026-10-01
+  curve_de_monthly                         fresh                                                        2026-10-01
   curve_uk_monthly                         fresh                                                        2026-09-30
-  curve_de_daily                           fresh                                                        2026-10-30
+  curve_jp_mof                             fresh                                                        2026-10-30
+  curve_de_daily                           fresh                                                        2026-11-02

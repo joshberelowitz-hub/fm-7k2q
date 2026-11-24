@@ -1,56 +1,56 @@
-  ok   yahoo_JPY (0.2s, 5419 rows)
-  ok   yahoo_DXY (0.2s, 5259 rows)
-  ok   yahoo_GBPUSD (0.3s, 5431 rows)
-  ok   yahoo_EURUSD (0.3s, 5419 rows)
-  ok   yahoo_MOVE (0.7s, 5165 rows)
-  ok   acm_tp (1.3s, 785 rows)
-  ok   boe_10y (1.3s, 5278 rows)
-  ok   oecd_rates (1.3s, 442 rows)
+  ok   yahoo_DXY (0.3s, 5260 rows)
+  ok   yahoo_JPY (0.3s, 5420 rows)
+  ok   oecd_rates (0.4s, 442 rows)
+  ok   yahoo_EURUSD (0.7s, 5420 rows)
+  ok   acm_tp (1.0s, 785 rows)
+  ok   yahoo_MOVE (0.6s, 5166 rows)
+  ok   yahoo_GBPUSD (0.7s, 5432 rows)
+  ok   boe_10y (1.1s, 5279 rows)
   ok   imf_GGXONLB_NGDP (0.3s, 272 rows)
-  ok   imf_GGXWDG_NGDP (0.4s, 272 rows)
-  ok   bbk_10y (1.7s, 5306 rows)
   ok   imf_GGXCNL_NGDP (0.4s, 272 rows)
-  ok   imf_NGDP_RPCH (0.3s, 312 rows)
-  ok   imf_GGR_NGDP (0.4s, 272 rows)
+  ok   imf_GGXWDG_NGDP (0.5s, 272 rows)
+  ok   imf_NGDP_RPCH (0.4s, 312 rows)
+  ok   bbk_10y (1.8s, 5307 rows)
   ok   imf_PCPIPCH (0.4s, 312 rows)
-  ok   imf_GGSB_NPGDP (0.4s, 257 rows)
-  ok   cnbc_fr_it_10y (1.2s, 523 rows)
-  ok   mof_jgb (2.6s, 5110 rows)
-  ok   ust_real_curve (8.5s, 5226 rows)
-  ok   ust_curve (9.3s, 5227 rows)
-  ok   curve_uk_daily (0.5s, 15 rows)
-  ok   curve_us_gsw (0.6s, 16319 rows)
-  ok   curve_de_monthly (1.1s, 358 rows)
-  ok   curve_uk_monthly (1.8s, 682 rows)
-  ok   euribor1m (2.6s, 394 rows)
-  ok   curve_jp_mof (3.5s, 10126 rows)
+  ok   imf_GGR_NGDP (0.6s, 272 rows)
+  ok   imf_GGSB_NPGDP (0.5s, 257 rows)
+  ok   cnbc_fr_it_10y (1.4s, 524 rows)
+  ok   mof_jgb (3.1s, 5111 rows)
+  ok   ust_curve (7.4s, 5228 rows)
+  ok   ust_real_curve (7.5s, 5227 rows)
+  FAIL curve_uk_monthly (0.4s): AttributeError: partially initialized module 'openpyxl' has no attribute 'Workbook' (most likely due to a circular import)
+  ok   curve_us_gsw (0.5s, 16319 rows)
+  ok   curve_uk_daily (0.7s, 16 rows)
+  ok   euribor1m (0.8s, 394 rows)
+  ok   curve_de_monthly (1.2s, 358 rows)
+  ok   curve_jp_mof (2.1s, 10127 rows)
   ok   curve_de_daily (3.9s, 46 rows)
 Wrote site/index.html — 7 sections, 0 warnings
 DATA HEALTH:
-  yahoo_DXY                                fresh                                                        2026-11-23
-  yahoo_JPY                                fresh                                                        2026-11-23
-  yahoo_GBPUSD                             fresh                                                        2026-11-23
-  yahoo_EURUSD                             fresh                                                        2026-11-23
-  yahoo_MOVE                               fresh                                                        2026-11-23
-  acm_tp                                   fresh                                                        2026-10-30
-  boe_10y                                  fresh                                                        2026-11-19
+  yahoo_DXY                                fresh                                                        2026-11-24
+  yahoo_JPY                                fresh                                                        2026-11-24
   oecd_rates                               fresh                                                        2026-10-01
+  yahoo_EURUSD                             fresh                                                        2026-11-24
+  acm_tp                                   fresh                                                        2026-10-30
+  yahoo_MOVE                               fresh                                                        2026-11-24
+  yahoo_GBPUSD                             fresh                                                        2026-11-24
+  boe_10y                                  fresh                                                        2026-11-20
   imf_GGXONLB_NGDP                         fresh                                                        
-  imf_GGXWDG_NGDP                          fresh                                                        
-  bbk_10y                                  fresh                                                        2026-11-23
   imf_GGXCNL_NGDP                          fresh                                                        
+  imf_GGXWDG_NGDP                          fresh                                                        
   imf_NGDP_RPCH                            fresh                                                        
-  imf_GGR_NGDP                             fresh                                                        
   imf_PCPIPCH                              fresh                                                        
+  bbk_10y                                  fresh                                                        2026-11-24
+  imf_GGR_NGDP                             fresh                                                        
   imf_GGSB_NPGDP                           fresh                                                        
-  cnbc_fr_it_10y                           fresh                                                        2026-11-23
-  mof_jgb                                  fresh                                                        2026-11-19
-  ust_real_curve                           fresh                                                        2026-11-20
-  ust_curve                                fresh                                                        2026-11-20
-  curve_uk_daily                           fresh                                                        2026-11-20
+  cnbc_fr_it_10y                           fresh                                                        2026-11-24
+  mof_jgb                                  fresh                                                        2026-11-20
+  ust_curve                                fresh                                                        2026-11-23
+  ust_real_curve                           fresh                                                        2026-11-23
+  curve_uk_monthly                         cached copy (download failed: AttributeError)                2026-10-30
   curve_us_gsw                             fresh                                                        2026-11-13
-  curve_de_monthly                         fresh                                                        2026-10-01
-  curve_uk_monthly                         fresh                                                        2026-10-30
+  curve_uk_daily                           fresh                                                        2026-11-23
   euribor1m                                fresh                                                        2026-10-01
-  curve_jp_mof                             fresh                                                        2026-11-19
-  curve_de_daily                           fresh                                                        2026-11-23
+  curve_de_monthly                         fresh                                                        2026-10-01
+  curve_jp_mof                             fresh                                                        2026-11-20
+  curve_de_daily                           fresh                                                        2026-11-24
